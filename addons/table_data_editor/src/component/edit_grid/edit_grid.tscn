@@ -1,0 +1,118 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" uid="uid://crmrv3njsk3we" path="res://addons/table_data_editor/src/component/table/table_container.tscn" id="1_1uj5v"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/component/edit_grid/edit_grid.gd" id="1_b56jx"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/component/edit_grid/serial_number_container.gd" id="2_irx05"]
+[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/edit_grid/cell/input_cell/input_cell.tscn" id="3_wsn5w"]
+[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/edit_grid/cell/serial_number_cell/serial_number_cell.tscn" id="3_xe81h"]
+[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/edit_grid/edit_box_window/edit_box_window.tscn" id="6_mt1mb"]
+
+[node name="edit_grid" type="MarginContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+script = ExtResource("1_b56jx")
+
+[node name="serial_number_container" type="GridContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+columns = 2
+script = ExtResource("2_irx05")
+serial_number_cell = ExtResource("3_xe81h")
+
+[node name="space" type="Control" parent="serial_number_container"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(27, 35)
+layout_mode = 2
+
+[node name="Control" type="Control" parent="serial_number_container"]
+clip_contents = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="h_serial_number_container" type="HBoxContainer" parent="serial_number_container/Control"]
+unique_name_in_owner = true
+layout_mode = 0
+theme_override_constants/separation = 0
+
+[node name="Control2" type="Control" parent="serial_number_container"]
+clip_contents = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="v_serial_number_container" type="VBoxContainer" parent="serial_number_container/Control2"]
+unique_name_in_owner = true
+layout_mode = 0
+theme_override_constants/separation = 0
+
+[node name="Control3" type="Control" parent="serial_number_container"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="grid_container" type="GridContainer" parent="serial_number_container/Control3"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
+columns = 2
+
+[node name="table_container" parent="serial_number_container/Control3/grid_container" instance=ExtResource("1_1uj5v")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+cell = ExtResource("3_wsn5w")
+
+[node name="v_scroll_bar" type="VScrollBar" parent="serial_number_container/Control3/grid_container"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 1
+min_value = 1.0
+step = 1.0
+page = 10.0
+value = 1.0
+exp_edit = true
+
+[node name="h_scroll_bar" type="HScrollBar" parent="serial_number_container/Control3/grid_container"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 1
+min_value = 1.0
+step = 1.0
+page = 10.0
+value = 1.0
+exp_edit = true
+
+[node name="Control" type="Control" parent="serial_number_container/Control3/grid_container"]
+layout_mode = 2
+
+[node name="update_grid_data_timer" type="Timer" parent="serial_number_container/Control3/grid_container"]
+unique_name_in_owner = true
+wait_time = 0.02
+one_shot = true
+autostart = true
+
+[node name="edit_box_window" parent="." instance=ExtResource("6_mt1mb")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[connection signal="scroll_changed" from="." to="serial_number_container" method="update_serial_number"]
+[connection signal="grid_cell_size_changed" from="serial_number_container/Control3/grid_container/table_container" to="serial_number_container" method="_on_table_container_grid_cell_size_changed"]
+[connection signal="newly_added_cell" from="serial_number_container/Control3/grid_container/table_container" to="." method="_newly_added_cell"]

@@ -1,0 +1,161 @@
+[gd_scene load_steps=5 format=3 uid="uid://b40gmpntb60fc"]
+
+[ext_resource type="Script" path="res://addons/table_data_editor/src/table_editor/table_data_editor.gd" id="1_hdoi3"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/component/menu/menu_list.gd" id="2_b355i"]
+[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/edit_grid/edit_grid.tscn" id="3_koba7"]
+[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/export_preview/export_preview.tscn" id="4_x6qb8"]
+
+[node name="table_data_editor" type="MarginContainer"]
+clip_contents = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+script = ExtResource("1_hdoi3")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="menu_list" type="HBoxContainer" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("2_b355i")
+
+[node name="GridContainer" type="HSplitContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+split_offset = 120
+
+[node name="pages" type="ItemList" parent="VBoxContainer/GridContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="edit_grid" parent="VBoxContainer/GridContainer" instance=ExtResource("3_koba7")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+metadata/_edit_group_ = true
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="scroll_pos" type="LineEdit" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "(1, 1)"
+alignment = 1
+
+[node name="Control" type="Control" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer2" type="MarginContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 4
+
+[node name="Panel" type="Panel" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/MarginContainer2"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+
+[node name="file_path_label" type="Label" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 4
+
+[node name="Panel" type="Panel" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/MarginContainer"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+
+[node name="saved_status_label" type="Label" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+self_modulate = Color(1, 1, 1, 0.625)
+layout_mode = 2
+size_flags_horizontal = 8
+text = "(saved)"
+
+[node name="export_preview_window" type="Window" parent="."]
+unique_name_in_owner = true
+position = Vector2i(0, -500)
+size = Vector2i(800, 400)
+visible = false
+
+[node name="export_preview" parent="export_preview_window" node_paths=PackedStringArray("json_editor") instance=ExtResource("4_x6qb8")]
+unique_name_in_owner = true
+json_editor = NodePath("../..")
+
+[node name="save_as_dialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+filters = PackedStringArray("*.gdata; GData")
+
+[node name="open_file_dialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Open a File"
+size = Vector2i(312, 157)
+ok_button_text = "打开"
+file_mode = 0
+filters = PackedStringArray("*.gdata; GData")
+
+[node name="confirm_dialog" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+
+[node name="tooltip_dialog" type="AcceptDialog" parent="."]
+unique_name_in_owner = true
+gui_embed_subwindows = true
+title = "Operate"
+size = Vector2i(500, 317)
+
+[node name="MarginContainer" type="MarginContainer" parent="tooltip_dialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -49.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="tooltip_dialog/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+text = "按住 Alt 键进行左右滚动，松开即可上下滚动"
+
+[connection signal="menu_pressed" from="VBoxContainer/menu_list" to="." method="_on_menu_list_menu_pressed"]
+[connection signal="cell_value_changed" from="VBoxContainer/GridContainer/edit_grid" to="." method="_on_edit_grid_cell_value_changed"]
+[connection signal="scroll_changed" from="VBoxContainer/GridContainer/edit_grid" to="." method="_on_edit_grid_scroll_changed"]
+[connection signal="text_submitted" from="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/scroll_pos" to="." method="_on_scroll_pos_text_submitted"]
+[connection signal="exported" from="export_preview_window/export_preview" to="." method="_on_export_preview_exported"]
+[connection signal="file_selected" from="save_as_dialog" to="." method="_on_save_as_dialog_file_selected"]
+[connection signal="file_selected" from="open_file_dialog" to="." method="_on_open_file_dialog_file_selected"]
+[connection signal="confirmed" from="confirm_dialog" to="." method="_new_file"]
