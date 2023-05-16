@@ -16,11 +16,11 @@ class_name TileMapUtil
 ## 获取这层的所有瓦片数据。坐标对应地图图片ID和地图集坐标
 static func get_cells(tilemap: TileMap, layer: int) -> Dictionary:
 	var data : Dictionary = {}
-	FuncUtil.for_rect(tilemap.get_used_rect(), func(coordinate: Vector2i):
-		var source_id = tilemap.get_cell_source_id(layer, coordinate)
-		var atlas_coord = tilemap.get_cell_atlas_coords(layer, coordinate)
+	FuncUtil.for_rect(tilemap.get_used_rect(), func(coords: Vector2i):
+		var source_id = tilemap.get_cell_source_id(layer, coords)
+		var atlas_coord = tilemap.get_cell_atlas_coords(layer, coords)
 		if source_id != -1:
-			data[coordinate] = {
+			data[coords] = {
 				"source_id": source_id,
 				"atlas_coord": atlas_coord,
 			}
@@ -66,52 +66,52 @@ static func find_passageway(
 	var right_column : int = rect.end.x
 	var top_row : int = rect.position.y
 	var bottom_row : int = rect.end.y
-	var coordinate : Vector2i
+	var coords : Vector2i
 	
 	# 每列
 	for x in range(left_column, right_column):
-		coordinate = Vector2i(x, top_row)
+		coords = Vector2i(x, top_row)
 		for layer in layers:
-			if (tilemap.get_cell_source_id(layer, coordinate) == -1
+			if (tilemap.get_cell_source_id(layer, coords) == -1
 				and (
-					tilemap.get_cell_source_id(layer, coordinate + Vector2i.LEFT) > -1
-					or tilemap.get_cell_source_id(layer, coordinate + Vector2i.RIGHT) > -1
+					tilemap.get_cell_source_id(layer, coords + Vector2i.LEFT) > -1
+					or tilemap.get_cell_source_id(layer, coords + Vector2i.RIGHT) > -1
 				)
 			):
-				door_data[Vector2i.UP].append(coordinate)
+				door_data[Vector2i.UP].append(coords)
 				break
 		
-		coordinate = Vector2i(x, bottom_row)
+		coords = Vector2i(x, bottom_row)
 		for layer in layers:
-			if (tilemap.get_cell_source_id(layer, coordinate) == -1
+			if (tilemap.get_cell_source_id(layer, coords) == -1
 				and (
-					tilemap.get_cell_source_id(layer, coordinate + Vector2i.LEFT) > -1
-					or tilemap.get_cell_source_id(layer, coordinate + Vector2i.RIGHT) > -1
+					tilemap.get_cell_source_id(layer, coords + Vector2i.LEFT) > -1
+					or tilemap.get_cell_source_id(layer, coords + Vector2i.RIGHT) > -1
 				)
 			):
-				door_data[Vector2i.DOWN].append(coordinate)
+				door_data[Vector2i.DOWN].append(coords)
 				break
 		
 	# 每行
 	for y in range(top_row, bottom_row):
-		coordinate = Vector2i(left_column, y)
+		coords = Vector2i(left_column, y)
 		for layer in layers:
-			if (tilemap.get_cell_source_id(layer, coordinate) == -1
-				and (tilemap.get_cell_source_id(layer, coordinate + Vector2i.UP) > -1
-					or tilemap.get_cell_source_id(layer, coordinate + Vector2i.DOWN) > -1
+			if (tilemap.get_cell_source_id(layer, coords) == -1
+				and (tilemap.get_cell_source_id(layer, coords + Vector2i.UP) > -1
+					or tilemap.get_cell_source_id(layer, coords + Vector2i.DOWN) > -1
 				)
 			):
-				door_data[Vector2i.LEFT].append(coordinate)
+				door_data[Vector2i.LEFT].append(coords)
 				break
 		
-		coordinate = Vector2i(right_column, y)
+		coords = Vector2i(right_column, y)
 		for layer in layers:
-			if (tilemap.get_cell_source_id(layer, coordinate) == -1
-				and (tilemap.get_cell_source_id(layer, coordinate + Vector2i.UP) > -1
-					or tilemap.get_cell_source_id(layer, coordinate + Vector2i.DOWN) > -1
+			if (tilemap.get_cell_source_id(layer, coords) == -1
+				and (tilemap.get_cell_source_id(layer, coords + Vector2i.UP) > -1
+					or tilemap.get_cell_source_id(layer, coords + Vector2i.DOWN) > -1
 				)
 			):
-				door_data[Vector2i.RIGHT].append(coordinate)
+				door_data[Vector2i.RIGHT].append(coords)
 				break
 	
 	return door_data
@@ -171,13 +171,13 @@ static func get_connected_cell(tilemap: TileMap, points: Array, layer: int = 0) 
 
 
 ## 获取两边没有瓦片的单元格
-static func get_around_no_tile_cell(tilemap: TileMap, coordinate: Vector2i, layer: int = 0, max_height: int = 1, max_width: int = 1) -> Array[Vector2i]:
-	var id = tilemap.get_cell_source_id(layer, coordinate)
+static func get_around_no_tile_cell(tilemap: TileMap, coords: Vector2i, layer: int = 0, max_height: int = 1, max_width: int = 1) -> Array[Vector2i]:
+	var id = tilemap.get_cell_source_id(layer, coords)
 	var no_tiles : Array[Vector2i] = []
 	if id != -1:
 		for width in max_width:
-			var left : Vector2i = coordinate + Vector2i(-width, 0)
-			var right : Vector2i = coordinate + Vector2i(width, 0)
+			var left : Vector2i = coords + Vector2i(-width, 0)
+			var right : Vector2i = coords + Vector2i(width, 0)
 			for i in (max_height + 1):
 				left -= Vector2i(0, i)
 				if tilemap.get_cell_source_id(layer, left) > -1:
@@ -189,28 +189,28 @@ static func get_around_no_tile_cell(tilemap: TileMap, coordinate: Vector2i, laye
 
 
 ## 获取这个坐标点两边的立足点。会返回两个项的数组，第一个为左边的点，第二个为右边的点，若为 null，则代表没有
-static func get_foothold_cell(tilemap: TileMap, coordinate: Vector2i, layer: int = 0) -> Array:
+static func get_foothold_cell(tilemap: TileMap, coords: Vector2i, layer: int = 0) -> Array:
 	var used_rect = tilemap.get_used_rect()
 	var left : Vector2i
 	var right : Vector2i
 	var coords : Array = [null, null]
 	
 	# 左。中上不能有其他瓦片
-	if (tilemap.get_cell_source_id(layer, coordinate + Vector2i(-1, -1)) == -1
-		and tilemap.get_cell_source_id(layer, coordinate + Vector2i(-1, 0)) == -1
+	if (tilemap.get_cell_source_id(layer, coords + Vector2i(-1, -1)) == -1
+		and tilemap.get_cell_source_id(layer, coords + Vector2i(-1, 0)) == -1
 	):
-		for i in (used_rect.end.y - coordinate.y):
-			left = coordinate + Vector2i(-1, i)
+		for i in (used_rect.end.y - coords.y):
+			left = coords + Vector2i(-1, i)
 			if tilemap.get_cell_source_id(layer, left) != -1:
 				coords[0] = left
 				break
 		
 	# 右。中上不能有其他瓦片
-	if (tilemap.get_cell_source_id(layer, coordinate + Vector2i(1, -1)) == -1
-		and tilemap.get_cell_source_id(layer, coordinate + Vector2i(1, 0)) == -1
+	if (tilemap.get_cell_source_id(layer, coords + Vector2i(1, -1)) == -1
+		and tilemap.get_cell_source_id(layer, coords + Vector2i(1, 0)) == -1
 	):
-		for i in (used_rect.end.y - coordinate.y):
-			right = coordinate + Vector2i(1, i)
+		for i in (used_rect.end.y - coords.y):
+			right = coords + Vector2i(1, i)
 			if tilemap.get_cell_source_id(layer, right) != -1:
 				coords[1] = right
 				break
@@ -219,12 +219,12 @@ static func get_foothold_cell(tilemap: TileMap, coordinate: Vector2i, layer: int
 
 
 ## 获取可接触到的单元格点
-static func get_touchable_coordinates(tilemap: TileMap, coordinate: Vector2i, touchable_height: int, touchable_width: int, layer: int = 0) -> Array:
+static func get_touchable_coordss(tilemap: TileMap, coords: Vector2i, touchable_height: int, touchable_width: int, layer: int = 0) -> Array:
 	var list : Array = [null, null]
 	
 	# 头顶不能有碰撞的单元格
 	for i in range(1, touchable_height + 1):
-		if tilemap.get_cell_source_id(layer, coordinate + Vector2i(0, -i)) != -1:
+		if tilemap.get_cell_source_id(layer, coords + Vector2i(0, -i)) != -1:
 			return list
 		
 	# 从中心向两边扩散，那一边的某列有，那这边是这个单元格可接触
@@ -233,14 +233,14 @@ static func get_touchable_coordinates(tilemap: TileMap, coordinate: Vector2i, to
 	for y in range(1, touchable_height + 1):
 		for x in range(1, touchable_width + 1):
 			if list[0] == null:
-				left = coordinate + Vector2i(-x, -y)
+				left = coords + Vector2i(-x, -y)
 				if (tilemap.get_cell_source_id(layer, left) > -1
 					and tilemap.get_cell_source_id(layer, left + Vector2i.UP) == -1
 				):
 					list[0] = left
 			
 			if list[1] == null:
-				right = coordinate + Vector2i(x, -y)
+				right = coords + Vector2i(x, -y)
 				if (tilemap.get_cell_source_id(layer, right) > -1
 					and tilemap.get_cell_source_id(layer, right + Vector2i.UP) == -1
 				):
@@ -256,14 +256,14 @@ static func get_touchable_coordinates(tilemap: TileMap, coordinate: Vector2i, to
 
 
 ## 瓦片替换为节点
-static func replace_tile_as_node_by_scene(tilemap: TileMap, layer: int, coordinate: Vector2i, scene: PackedScene) -> Node:
-	tilemap.set_cell(layer, coordinate, -1, Vector2(0, 0))
+static func replace_tile_as_node_by_scene(tilemap: TileMap, layer: int, coords: Vector2i, scene: PackedScene) -> Node:
+	tilemap.set_cell(layer, coords, -1, Vector2(0, 0))
 	
 	# 替换场景节点
 	var node = scene.instantiate()
 #	node.z_index = -10
 	tilemap.add_child(node)
-	node.global_position = tilemap.global_position + Vector2(tilemap.tile_set.tile_size * coordinate) 
+	node.global_position = tilemap.global_position + Vector2(tilemap.tile_set.tile_size * coords) 
 	return node
 
 
@@ -284,12 +284,12 @@ static func get_ground_cells(
 	if ids.is_empty() and atlas_coords.is_empty():
 		return tilemap.get_used_cells(layer)
 	
-	for coordinate in tilemap.get_used_cells(layer):
-		if ((ids.is_empty() or tilemap.get_cell_source_id(layer, coordinate) in ids)
-			and (atlas_coords.is_empty() or tilemap.get_cell_atlas_coords(layer, coordinate) in atlas_coords)
+	for coords in tilemap.get_used_cells(layer):
+		if ((ids.is_empty() or tilemap.get_cell_source_id(layer, coords) in ids)
+			and (atlas_coords.is_empty() or tilemap.get_cell_atlas_coords(layer, coords) in atlas_coords)
 		):
-			if tilemap.get_cell_source_id(layer, coordinate + Vector2i.UP) == -1:
-				list.append(coordinate)
+			if tilemap.get_cell_source_id(layer, coords + Vector2i.UP) == -1:
+				list.append(coords)
 	return list
 
 
@@ -345,12 +345,12 @@ static func has_cell_data_by_rect(tilemap: TileMap, rect: Rect2i, layers: Array[
 	if layers.is_empty():
 		layers = get_layers(tilemap)
 	
-	var coordinate : Vector2i
+	var coords : Vector2i
 	for y in range(rect.position.y, rect.end.y + 1):
 		for x in range(rect.position.x, rect.end.x + 1):
-			coordinate = Vector2i(x, y)
+			coords = Vector2i(x, y)
 			for layer in layers:
-				if tilemap.get_cell_source_id(layer, coordinate, use_proxies) != -1:
+				if tilemap.get_cell_source_id(layer, coords, use_proxies) != -1:
 					return true
 	return false
 
@@ -382,12 +382,12 @@ static func get_cell_data_by_rect(
 		layers = get_layers(tilemap)
 	
 	var list : Array[CellItemData] = []
-	FuncUtil.for_rect(rect, func(coordinate: Vector2i):
+	FuncUtil.for_rect(rect, func(coords: Vector2i):
 		var source_id : int = -1
 		for layer in layers:
-			source_id = tilemap.get_cell_source_id(layer, coordinate, use_proxies)
+			source_id = tilemap.get_cell_source_id(layer, coords, use_proxies)
 			if source_id != -1:
-				list.append_array(get_cell_data(tilemap, coordinate, layers, use_proxies))
+				list.append_array(get_cell_data(tilemap, coords, layers, use_proxies))
 				break
 	)
 	return list
@@ -413,12 +413,12 @@ class CellItemData:
 ##  获取这个坐标的单元格的所有数据
 ##[br]
 ##[br][code]tilemap[/code]  获取的 tilemap
-##[br][code]coordinate[/code]  所在单元格的坐标
+##[br][code]coords[/code]  所在单元格的坐标
 ##[br][code]layers[/code]  要获取的层级的数据。如果为空，则默认获取全部的层级的数据
 ##[br][code]use_proxies[/code]  获取代理的数据
 static func get_cell_data(
 	tilemap: TileMap, 
-	coordinate: Vector2i, 
+	coords: Vector2i, 
 	layers: Array[int] = [], 
 	use_proxies: bool = false 
 ) -> Array[CellItemData]:
@@ -430,10 +430,10 @@ static func get_cell_data(
 		item = CellItemData.new()
 		item.layer = layer
 		item.use_proxies = use_proxies
-		item.coords = coordinate
-		item.source_id = tilemap.get_cell_source_id(layer, coordinate, use_proxies)
-		item.atlas_coords = tilemap.get_cell_atlas_coords(layer, coordinate, use_proxies)
-		item.alternative_tile = tilemap.get_cell_alternative_tile(layer, coordinate, use_proxies)
+		item.coords = coords
+		item.source_id = tilemap.get_cell_source_id(layer, coords, use_proxies)
+		item.atlas_coords = tilemap.get_cell_atlas_coords(layer, coords, use_proxies)
+		item.alternative_tile = tilemap.get_cell_alternative_tile(layer, coords, use_proxies)
 		list.append(item)
 	return list
 

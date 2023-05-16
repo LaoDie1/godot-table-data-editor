@@ -7,7 +7,7 @@
 extends EditorPlugin
 
 
-const MAIN = preload("src/table_editor/table_data_editor.tscn")
+const MAIN = preload("src/table_data_editor/table_data_editor.tscn")
 
 var main := MAIN.instantiate() as TableDataEditor
 # 第一次显示出来

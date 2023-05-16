@@ -59,10 +59,8 @@ func update_column_width(origin_column: int, width: int):
 		node.custom_minimum_size.x = width
 
 
-#============================================================
-#  连接信号
-#============================================================
-func update_grid_tile_count(grid_size: Vector2i):
+## 更新行列数字标题节点的数量
+func update_grid_cell_count(grid_size: Vector2i):
 	if _table_container == null:
 		while _table_container == null:
 			await get_tree().process_frame

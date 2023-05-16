@@ -29,26 +29,23 @@ enum ExportMode {
 const EXAMPLE_COUNT = 3
 
 
-@export
-var json_editor : TableDataEditor
+@export var json_editor : TableDataEditor
 
 
-@onready 
-var _export_type := %export_type as ItemList
-@onready 
-var _text_box := %text_box as TextEdit
-@onready 
-var _head_as_key_panel := %head_as_key_panel as HFlowContainer
-@onready 
-var _head_line_box := %head_line_box as SpinBox
-@onready 
-var _save_dialog := %save_dialog as FileDialog 
-@onready 
-var _compact := %compact as CheckBox
+var __init_node = InjectUtil.auto_inject(self, "_")
+var _text_box : TextEdit
+var _head_as_key_panel : Control
+var _head_line_box : SpinBox
+var _save_dialog : FileDialog 
+var _compact : CheckBox
+var _select_items : Control
+var _selected_item_param : Control
 
 
 ## 指定的 head 列数对应的值内容。_head_map[列数] = 值内容
-var _head_map := {}
+var _head_map : Dictionary = {}
+
+var button_group : ButtonGroup 
 
 
 #============================================================
@@ -60,11 +57,11 @@ func get_head_map(row: int) -> Dictionary:
 	# 头部字符串映射
 	var head_map = {}
 	var grid_data = json_editor.get_grid_data()
-	var coordinate : Vector2i = Vector2i()
+	var coords : Vector2i = Vector2i()
 	for column in columns:
-		coordinate = Vector2i(column, row)
-		if grid_data.has(coordinate):
-			var value = grid_data[coordinate]
+		coords = Vector2i(column, row)
+		if grid_data.has(coords):
+			var value = grid_data[coords]
 			head_map[column] = value
 	return head_map
 
@@ -73,13 +70,13 @@ func get_head_map(row: int) -> Dictionary:
 func get_normal_format_data() -> Dictionary:
 	var data = {}
 	var grid_data = json_editor.get_grid_data()
-	var coordinate : Vector2i
+	var coords : Vector2i
 	for row in json_editor.get_has_value_rows():
 		var columns = json_editor.get_has_value_column_in_row(row)
 		for column in columns:
-			coordinate = Vector2i(column, row)
-			if grid_data.has(coordinate):
-				data[coordinate] = grid_data[coordinate]
+			coords = Vector2i(column, row)
+			if grid_data.has(coords):
+				data[coords] = grid_data[coords]
 	return data
 
 
@@ -94,7 +91,6 @@ func get_head_key_data() -> Array[Dictionary]:
 	var has_value_rows = json_editor.get_has_value_rows() as Array
 	for i in (int(_head_line_box.value) + 1):
 		has_value_rows.erase(i)
-	
 	for row in has_value_rows:
 		data = {}
 		for column in _head_map:
@@ -109,16 +105,33 @@ func get_head_key_data() -> Array[Dictionary]:
 func get_data_by_row() -> Array:
 	var data_list = []
 	var grid_data = json_editor.get_grid_data()
-	var coordinate : Vector2i
+	var coords : Vector2i
 	for row in json_editor.get_has_value_rows():
 		var data = {}
 		var columns = json_editor.get_has_value_column_in_row(row)
 		for column in columns:
-			coordinate = Vector2i(column, row)
-			if grid_data.has(coordinate):
-				data[coordinate] = grid_data[coordinate]
+			coords = Vector2i(column, row)
+			if grid_data.has(coords):
+				data[coords] = grid_data[coords]
 		data_list.append(data)
 	return data_list
+
+
+func get_csv_data() -> Array:
+	var data_set = json_editor._table_edit._data_set as TableDataEditor_TableDataSet
+	
+	var max_column : int = data_set.get_max_column()
+	if max_column == 0:
+		return []
+	
+	var csv_list : Array = []
+	for row in range(1, data_set.get_max_column() + 1):
+		var line : Array = []
+		for column in range(1, max_column + 1):
+			line.append(data_set.get_value(Vector2i(column, row)))
+		csv_list.append(",".join(line))
+	
+	return csv_list
 
 
 
@@ -126,13 +139,16 @@ func get_data_by_row() -> Array:
 #  内置
 #============================================================
 func _ready() -> void:
-	if not TableEditUtil.is_enabled():
-		return 
-	
-	if _export_type.item_count == 0:
-		for type in ExportMode.keys():
-			_export_type.add_item( str(type).capitalize() )
-		_head_as_key_panel.visible = false
+	button_group = _select_items.get_child(0).button_group as ButtonGroup
+	button_group.pressed.connect(func(button):
+		for child in _selected_item_param.get_children():
+			child.visible = false
+		match button.name:
+			"json": _head_as_key_panel.visible = true
+		
+		update_text_box_content()
+	)
+
 
 
 #============================================================
@@ -168,7 +184,7 @@ func _update_head_as_key():
 
 func _update_by_row():
 	var data_list = []
-	for i in get_data_by_row():
+	for i in get_csv_data():
 		data_list.append(i)
 		if data_list.size() == EXAMPLE_COUNT:
 			break
@@ -179,34 +195,16 @@ func _update_by_row():
 # 更新文本框的内容
 func update_text_box_content():
 	_text_box.text = ""
-	match _export_type.get_selected_items()[0]:
-		ExportMode.NORMAL:
-			_update_normal()
-		ExportMode.HEAD_AS_KEY:
+	match button_group.get_pressed_button().name:
+		"json":
 			_update_head_as_key()
-		ExportMode.BY_ROW:
+		"csv":
 			_update_by_row()
-
-
-## 更新示例内容
-func update_example_content():
-	if _export_type.get_selected_items().size() > 0:
-		_on_export_type_item_selected(_export_type.get_selected_items()[0])
 
 
 #============================================================
 #  连接信号
 #============================================================
-func _on_export_type_item_selected(index: int) -> void:
-	_head_as_key_panel.visible = false
-	
-	match index:
-		ExportMode.HEAD_AS_KEY:
-			_head_as_key_panel.visible = true
-	
-	update_text_box_content()
-
-
 func _on_head_line_box_value_changed(value: float) -> void:
 	update_text_box_content()
 
@@ -218,13 +216,11 @@ func _on_export_pressed() -> void:
 
 func _on_save_dialog_file_selected(path: String) -> void:
 	var data
-	match _export_type.get_selected_items()[0]:
-		ExportMode.NORMAL:
-			data = get_normal_format_data()
-		ExportMode.HEAD_AS_KEY:
+	match button_group.get_pressed_button().name:
+		"csv":
+			data =  get_csv_data()
+		"json":
 			data = get_head_key_data()
-		ExportMode.BY_ROW:
-			data =  get_data_by_row()
 		_:
 			data = {}
 	
@@ -233,3 +229,5 @@ func _on_save_dialog_file_selected(path: String) -> void:
 	
 	print(" >>> 保存json数据：", path)
 	self.exported.emit(path, data)
+
+

@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://addons/table_data_editor/src/component/table_edit/edit_box_window.gd" id="1_qj0ea"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/table_edit/edit_box_window/edit_box_window.gd" id="1_qj0ea"]
 
 [node name="edit_box_window" type="Control"]
 layout_mode = 3

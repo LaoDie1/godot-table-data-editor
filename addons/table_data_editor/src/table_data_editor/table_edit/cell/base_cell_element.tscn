@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://addons/table_data_editor/src/component/table_edit/cell/base_cell_element.gd" id="1_wjxc7"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/table_edit/cell/base_cell_element.gd" id="1_wjxc7"]
 
 [node name="base_cell_element" type="MarginContainer"]
 offset_right = 80.0

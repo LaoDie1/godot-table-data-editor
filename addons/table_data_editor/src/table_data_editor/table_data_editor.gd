@@ -4,6 +4,8 @@
 # - datetime: 2022-11-27 01:31:14
 #============================================================
 ## JSON 数据编辑器
+##
+##这里将各独立的组件组合起来，功能整合
 @tool
 class_name TableDataEditor
 extends MarginContainer
@@ -31,10 +33,10 @@ const MENU_ITEM : Dictionary = {
 	"File": [
 		"New", "Open", {"Recently Opened": ["/"]}, "-", 
 		"Save", "Save As...", "-", 
-		{"Export": ["JSON..."],},
+		"Export...",
 	],
 	"Edit": ["Undo", "Redo"],
-	"Help": ["Operate"],
+	"Help": ["Help"],
 }
 ## 菜单快捷键
 const MENU_SHORTCUT : Dictionary = {
@@ -96,7 +98,7 @@ var _table_edit : TableEdit
 var _menu_list : MenuList
 # 滚动条位置输入框
 var _scroll_pos : LineEdit
-# 切换页面（暂未完成）
+# 切换页面（暂未开始）
 var _pages : ItemList
 
 var _export_preview_window : Window
@@ -117,9 +119,9 @@ var file_path_label : Label
 #  SetGet
 #============================================================
 ## 获取项目数据
-func get_project_data() -> TableDataEditor_JsonData:
-	var json_data = TableDataEditor_JsonData.new()
-	json_data.version = 1.2
+func get_project_data() -> TableDataEditor_FileData:
+	var json_data = TableDataEditor_FileData.new()
+	json_data.version = 1.3
 	json_data.grid_data = _table_edit.get_grid_data()
 	json_data.column_width = _table_edit.get_column_width_data()
 	json_data.row_height = _table_edit.get_row_height_data()
@@ -283,7 +285,19 @@ func load_grid_data_by_path(path: String):
 
 ## 加载数据
 func load_data(data: Dictionary):
-	var json_data := JsonUtil.dict_to_object(data, TableDataEditor_JsonData) as TableDataEditor_JsonData
+	var json_data := JsonUtil.dict_to_object(data, TableDataEditor_FileData) as TableDataEditor_FileData
+	
+	print(JSON.stringify(data, "\t"))
+	
+	if json_data.version == 1.2:
+		var grid_data = json_data.grid_data
+		var data_set = TableDataEditor_TableDataSet.new()
+		for coords in grid_data:
+			data_set.set_value(coords, grid_data[coords])
+		
+		json_data.grid_data = data_set.get_origin_data()
+		_table_edit._data_set = data_set
+	
 	
 	# 设置数据
 	_table_edit._column_to_width_map = json_data.column_width as Dictionary
@@ -295,13 +309,15 @@ func load_data(data: Dictionary):
 		_table_edit.get_edit_dialog().box_size = json_data.edit_dialog_size
 	
 	# 记录存在有值的行和列
-	for coord in _table_edit.get_grid_data():
-		if not _has_value_row_map.has(coord.y):
-			_has_value_row_map[coord.y] = {}
-		_has_value_row_map[coord.y][coord.x] = null
-		if not _has_value_column_map.has(coord.x):
-			_has_value_column_map[coord.x] = {}
-		_has_value_column_map[coord.x][coord.y] = null
+#	for coord in _table_edit.get_grid_data():
+#		if not _has_value_row_map.has(coord.y):
+#			_has_value_row_map[coord.y] = {}
+#		_has_value_row_map[coord.y][coord.x] = null
+#		if not _has_value_column_map.has(coord.x):
+#			_has_value_column_map[coord.x] = {}
+#		_has_value_column_map[coord.x][coord.y] = null
+	
+	_table_edit.update_cell_list()
 	
 	_saved = true
 	_undo_redo.clear_history()
@@ -353,16 +369,16 @@ func show_save_dialog(default_file_name: String = ""):
 #============================================================
 #  连接信号
 #============================================================
-func _on_table_edit_cell_value_changed(cell: InputCell, coordinate: Vector2i, previous: String, value: String):
+func _on_table_edit_cell_value_changed(cell: InputCell, coords: Vector2i, previous: String, value: String):
 	_saved = false
 	
 #	print("[ TableDataEditor ] 单元格发生改变")
 	
 	# 记录存在有数据的行列
 	_undo_redo.create_action("修改单元格的值")
-	_undo_redo.add_do_method( _table_edit.alter_value.bind(coordinate, value, false) )
+	_undo_redo.add_do_method( _table_edit.alter_value.bind(coords, value, false) )
 	_undo_redo.add_do_method( _table_edit.update_cell_list )
-	_undo_redo.add_undo_method( _table_edit.alter_value.bind(coordinate, previous, false) )
+	_undo_redo.add_undo_method( _table_edit.alter_value.bind(coords, previous, false) )
 	_undo_redo.add_undo_method( _table_edit.update_cell_list )
 	_undo_redo.commit_action()
 	
@@ -370,19 +386,25 @@ func _on_table_edit_cell_value_changed(cell: InputCell, coordinate: Vector2i, pr
 	_menu_list.set_menu_disabled("/Edit/Undo", false)
 
 
-func _on_table_edit_scroll_changed(coordinate: Vector2i):
-	_scroll_pos.text = str(coordinate)
+func _on_table_edit_scroll_changed(coords: Vector2i):
+	_scroll_pos.text = str(coords)
 
 
 func _on_scroll_pos_text_submitted(new_text):
-	var pos = str_to_var("Vector2i" + new_text)
+	var re = RegEx.new()
+	re.compile("(\\d+)\\s*,\\s*(\\d+)")
+	var result = re.search(new_text)
+	if result == null:
+		return
+	
+	var pos = str_to_var("Vector2i(%s, %s)" % [result.get_string(1), result.get_string(2)])
 	if pos is Vector2i:
 		_table_edit.scroll_to(pos)
 		print("[ TableDataEditor ] 跳转到位置：", pos)
 
 
 func _on_menu_list_menu_pressed(idx, menu_path: String):
-	print_debug("[ TableDataEditor ] 点击菜单 ", menu_path)
+#	print_debug("[ TableDataEditor ] 点击菜单 ", menu_path)
 	
 	match menu_path:
 		"/File/New":
@@ -404,10 +426,10 @@ func _on_menu_list_menu_pressed(idx, menu_path: String):
 		"/File/Save As...":
 			show_save_dialog("new_file." + CUSTOM_EXTENSION)
 		
-		"/File/Export/JSON...":
+		"/File/Export...":
 #			show_save_dialog("new_file.json")
 			_export_preview_window.popup_centered_ratio(0.5)
-			_export_preview.update_example_content()
+			_export_preview.update_text_box_content()
 		
 		"/Edit/Undo":
 			_undo_redo.undo()
@@ -419,7 +441,7 @@ func _on_menu_list_menu_pressed(idx, menu_path: String):
 			_menu_list.set_menu_disabled("/Edit/Redo", not _undo_redo.has_redo())
 			_menu_list.set_menu_disabled("/Edit/Undo", false)
 		
-		"/Help/Operate":
+		"/Help/Help":
 			_tooltip_dialog.popup_centered()
 		
 		_:
@@ -437,7 +459,7 @@ func _on_save_as_dialog_file_selected(path):
 		"json":
 			save_as_json( _saved_path )
 		_:
-			printerr("[ TableDataEditor ] <未知的文件扩展名> ", _saved_path.get_extension())
+			printerr("[ TableDataEditor ] <Unknown Type> ", _saved_path.get_extension())
 
 
 func _on_export_preview_exported(path, data) -> void:

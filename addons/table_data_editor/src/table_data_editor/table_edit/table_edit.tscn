@@ -1,10 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://c25057ludesub"]
+[gd_scene load_steps=6 format=3 uid="uid://ctppgkl2dpksd"]
 
-[ext_resource type="PackedScene" uid="uid://bqv524ofmfge7" path="res://addons/table_data_editor/src/component/table_container/table_container.tscn" id="1_1uj5v"]
-[ext_resource type="Script" path="res://addons/table_data_editor/src/component/table_edit/table_edit.gd" id="1_b56jx"]
-[ext_resource type="Script" path="res://addons/table_data_editor/src/component/table_edit/serial_number_container.gd" id="2_irx05"]
-[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/table_edit/cell/serial_number_cell/serial_number_cell.tscn" id="3_xe81h"]
-[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/table_edit/edit_box_window/edit_box_window.tscn" id="6_mt1mb"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/table_edit/table_edit.gd" id="1_b56jx"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/table_edit/serial_number_container.gd" id="2_irx05"]
+[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/table_data_editor/table_edit/cell/serial_number_cell/serial_number_cell.tscn" id="3_xe81h"]
+[ext_resource type="PackedScene" uid="uid://d02f0rqt6qnpv" path="res://addons/table_data_editor/src/table_data_editor/table_edit/table_container/table_container.tscn" id="4_sm235"]
+[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/table_data_editor/table_edit/edit_box_window/edit_box_window.tscn" id="6_mt1mb"]
 
 [node name="table_edit" type="MarginContainer"]
 anchors_preset = 15
@@ -73,7 +73,7 @@ theme_override_constants/h_separation = 0
 theme_override_constants/v_separation = 0
 columns = 2
 
-[node name="table_container" parent="serial_number_container/Control3/grid_container" instance=ExtResource("1_1uj5v")]
+[node name="table_container" parent="serial_number_container/Control3/grid_container" instance=ExtResource("4_sm235")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -112,5 +112,5 @@ autostart = true
 unique_name_in_owner = true
 layout_mode = 2
 
-[connection signal="grid_tile_size_changed" from="serial_number_container/Control3/grid_container/table_container" to="." method="_on_table_container_grid_tile_size_changed"]
+[connection signal="grid_cell_size_changed" from="serial_number_container/Control3/grid_container/table_container" to="." method="_on_table_container_grid_cell_size_changed"]
 [connection signal="newly_added_cell" from="serial_number_container/Control3/grid_container/table_container" to="." method="_newly_added_cell"]

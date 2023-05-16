@@ -1,9 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://smtvc4png2p1"]
+[gd_scene load_steps=5 format=3 uid="uid://68vjwfxquvlf"]
 
-[ext_resource type="Script" path="res://addons/table_data_editor/src/table_editor/table_data_editor.gd" id="1_hdoi3"]
-[ext_resource type="Script" path="res://addons/table_data_editor/src/component/menu/menu_list.gd" id="2_b355i"]
-[ext_resource type="PackedScene" uid="uid://c25057ludesub" path="res://addons/table_data_editor/src/component/table_edit/table_edit.tscn" id="3_koba7"]
-[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/export_preview/export_preview.tscn" id="4_x6qb8"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/table_data_editor.gd" id="1_j3oce"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/menu/menu_list.gd" id="2_jsb7y"]
+[ext_resource type="PackedScene" uid="uid://ctppgkl2dpksd" path="res://addons/table_data_editor/src/table_data_editor/table_edit/table_edit.tscn" id="3_87xax"]
+[ext_resource type="PackedScene" uid="uid://dq4euj3vbhcd3" path="res://addons/table_data_editor/src/table_data_editor/export_preview/export_preview.tscn" id="4_qxigk"]
 
 [node name="table_data_editor" type="MarginContainer"]
 clip_contents = true
@@ -18,7 +18,7 @@ theme_override_constants/margin_left = 2
 theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 2
 theme_override_constants/margin_bottom = 2
-script = ExtResource("1_hdoi3")
+script = ExtResource("1_j3oce")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 2
@@ -26,7 +26,7 @@ layout_mode = 2
 [node name="menu_list" type="HBoxContainer" parent="VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-script = ExtResource("2_b355i")
+script = ExtResource("2_jsb7y")
 
 [node name="GridContainer" type="HSplitContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -38,7 +38,7 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 
-[node name="table_edit" parent="VBoxContainer/GridContainer" instance=ExtResource("3_koba7")]
+[node name="table_edit" parent="VBoxContainer/GridContainer" instance=ExtResource("3_87xax")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
@@ -63,6 +63,7 @@ custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 text = "(1, 1)"
 alignment = 1
+select_all_on_focus = true
 
 [node name="Control" type="Control" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
@@ -107,8 +108,9 @@ unique_name_in_owner = true
 position = Vector2i(0, -500)
 size = Vector2i(800, 400)
 visible = false
+exclusive = true
 
-[node name="export_preview" parent="export_preview_window" node_paths=PackedStringArray("json_editor") instance=ExtResource("4_x6qb8")]
+[node name="export_preview" parent="export_preview_window" node_paths=PackedStringArray("json_editor") instance=ExtResource("4_qxigk")]
 unique_name_in_owner = true
 json_editor = NodePath("../..")
 

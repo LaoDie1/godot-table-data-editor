@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://dq4euj3vbhcd3"]
 
-[ext_resource type="Script" path="res://addons/table_data_editor/src/export_preview/export_preview.gd" id="1_iqbuq"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/export_preview/export_preview.gd" id="1_iqbuq"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_drl5b"]
 
 [node name="export_preview" type="MarginContainer"]
 editor_description = "导出预览"
@@ -23,39 +25,57 @@ layout_mode = 2
 size_flags_vertical = 3
 split_offset = 200
 
-[node name="export_type" type="ItemList" parent="VBoxContainer/HSplitContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-item_count = 3
-item_0/text = "Normal"
-item_1/text = "Head As Key"
-item_2/text = "By Row"
-
 [node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HSplitContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/HSplitContainer/VBoxContainer"]
-modulate = Color(1, 1, 1, 0.462745)
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/HSplitContainer/VBoxContainer"]
 layout_mode = 2
-text = "Sample data in the first few lines..."
 
-[node name="head_as_key_panel" type="HFlowContainer" parent="VBoxContainer/HSplitContainer/VBoxContainer"]
+[node name="select_items" type="HBoxContainer" parent="VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="csv" type="CheckBox" parent="VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/select_items"]
+layout_mode = 2
+button_pressed = true
+button_group = SubResource("ButtonGroup_drl5b")
+text = "CSV"
+
+[node name="json" type="CheckBox" parent="VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/select_items"]
+layout_mode = 2
+button_group = SubResource("ButtonGroup_drl5b")
+text = "JSON"
+
+[node name="VSeparator" type="VSeparator" parent="VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="selected_item_param" type="HBoxContainer" parent="VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="head_as_key_panel" type="HBoxContainer" parent="VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/HSplitContainer/VBoxContainer/head_as_key_panel"]
+[node name="Label" type="Label" parent="VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/head_as_key_panel"]
 layout_mode = 2
 tooltip_text = "作为 key 的行"
 text = "Key Row: "
 
-[node name="head_line_box" type="SpinBox" parent="VBoxContainer/HSplitContainer/VBoxContainer/head_as_key_panel"]
+[node name="head_line_box" type="SpinBox" parent="VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/head_as_key_panel"]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "作为 key 的行"
 min_value = 1.0
 max_value = 10000.0
 value = 1.0
+
+[node name="Label" type="Label" parent="VBoxContainer/HSplitContainer/VBoxContainer"]
+modulate = Color(1, 1, 1, 0.462745)
+layout_mode = 2
+text = "Sample data in the first few lines..."
 
 [node name="text_box" type="TextEdit" parent="VBoxContainer/HSplitContainer/VBoxContainer"]
 unique_name_in_owner = true
@@ -95,7 +115,6 @@ unique_name_in_owner = true
 size = Vector2i(343, 159)
 filters = PackedStringArray("*.json; JSON")
 
-[connection signal="item_selected" from="VBoxContainer/HSplitContainer/export_type" to="." method="_on_export_type_item_selected"]
-[connection signal="value_changed" from="VBoxContainer/HSplitContainer/VBoxContainer/head_as_key_panel/head_line_box" to="." method="_on_head_line_box_value_changed"]
+[connection signal="value_changed" from="VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/head_as_key_panel/head_line_box" to="." method="_on_head_line_box_value_changed"]
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/export" to="." method="_on_export_pressed"]
 [connection signal="file_selected" from="save_dialog" to="." method="_on_save_dialog_file_selected"]

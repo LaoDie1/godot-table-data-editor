@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://addons/table_data_editor/src/component/menu/menu_list.gd" id="1_sr4ay"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/menu/menu_list.gd" id="1_sr4ay"]
 
 [node name="menu_list_test" type="Control"]
 layout_mode = 3

@@ -5,7 +5,7 @@
 # - datetime: 2023-03-23 23:30:46
 # - version: 4.0
 #============================================================
-class_name TableDataEditor_JsonData
+class_name TableDataEditor_FileData
 
 
 # 数据格式版本
