@@ -3,9 +3,11 @@
 #============================================================
 # - datetime: 2022-11-26 17:53:52
 #============================================================
+##编辑网格
+##
 ## 这里管理 Cell 单元格的数据内容
 @tool
-class_name EditGrid
+class_name TableEdit
 extends MarginContainer
 
 
@@ -28,25 +30,25 @@ signal column_width_changed(value: int)
 const UPDATE_CELL_LIST_TIME = 0.02
 
 
-@onready 
-var _table_container := %table_container as TableContainer
-@onready 
-var _edit_popup_box := %edit_box_window as EditPopupBox
-@onready 
-var _v_scroll_bar := %v_scroll_bar as VScrollBar
-@onready 
-var _h_scroll_bar := %h_scroll_bar as HScrollBar
-@onready 
-var _update_grid_data_timer := %update_grid_data_timer as Timer
-@onready 
-var _serial_number_container := %serial_number_container as SerialNumberContainer
+var __init_node = InjectUtil.auto_inject(self, "_", true)
+
+var _table_container : TableContainer
+var _edit_popup_box : EditPopupBox
+var _v_scroll_bar : VScrollBar
+var _h_scroll_bar : HScrollBar
+var _update_grid_data_timer : Timer
+var _serial_number_container : SerialNumberContainer
 
 
 var default_tile_size : Vector2i
 
 
-# 表格中的数据
-var _grid_data := {}
+# 表格中的数据 data[row][column] = data 
+var grid_data := {}:
+	set(v):
+		grid_data = v
+		update_cell_list()
+		scroll_to(Vector2i(0,0))
 # 行对应的行高
 var _row_to_height_map := {}
 # 列对应的列宽
@@ -75,12 +77,12 @@ var _updated : bool = false
 #============================================================
 ## 设置表格数据
 func set_grid_data(data: Dictionary):
-	_grid_data = data
+	grid_data = data
 	update_cell_list()
 	scroll_to(Vector2i(0,0))
 
 func get_grid_data() -> Dictionary:
-	return _grid_data
+	return grid_data
 
 ## 获取当前滚动到的左上角位置
 func get_scroll_top_left() -> Vector2i:
@@ -105,7 +107,7 @@ func get_cell(coordinate: Vector2i) -> InputCell:
 
 ## 获取这个行列坐标上的值
 func get_value(coordinate: Vector2i) -> String:
-	return _grid_data.get(coordinate, "")
+	return grid_data.get(coordinate, "")
 
 ## 获取列宽
 func get_column_width(column: int, default_width: int = 0):
@@ -133,8 +135,6 @@ func get_edit_dialog() -> EditPopupBox:
 #  内置
 #============================================================
 func _ready() -> void:
-	if not (EditGridUtil.is_enabled()):
-		return 
 	
 	# 滚动条
 	_h_scroll_bar.scrolling.connect(func():
@@ -153,23 +153,20 @@ func _ready() -> void:
 		# 更新选中的 cell
 		if _selected_cell:
 			_alter_cell_value( _selected_cell, text )
-		print("[ EditGrid ] 文本发生改变")
+		print("[ TableEdit ] 文本发生改变")
 	)
 	
 	# 必须要等空闲时间时调用，否则 _table_container 中的节点没有加载完成，则看不到节点的大小
-	await get_tree().process_frame
+	await Engine.get_main_loop().process_frame
 	update_serial_num(Vector2i(0, 0))
 	default_tile_size = _table_container.get_tile_size()
 	
 	# 切换窗口时取消 alt 
-	while true:
-		if get_window() == null:
-			await Engine.get_main_loop().process_frame
-		else:
-			break
+	while get_window() == null:
+		await Engine.get_main_loop().process_frame
 	_pressing_alt = false
 	
-	const KEY = "__EditGrid_window_focus_exited_callable"
+	const KEY = "__TableEdit_window_focus_exited_callable"
 	if Engine.get_main_loop().has_meta(KEY):
 		var callable = Engine.get_main_loop().get_meta(KEY)
 		for data in get_window().focus_exited.get_connections():
@@ -179,6 +176,9 @@ func _ready() -> void:
 	
 	# 更新表格数据
 	update_cell_list()
+	
+	_serial_number_container.update_serial_number(Vector2i(0,0))
+	
 
 
 func _notification(what):
@@ -191,7 +191,7 @@ func _unhandled_input(event):
 		# 按下 alt 键
 		if event.keycode == KEY_ALT:
 #			if not _pressing_alt and event.is_pressed():
-#				print("[ EditGrid ] 按下了 Alt 键")
+#				print("[ TableEdit ] 按下了 Alt 键")
 			_pressing_alt = event.is_pressed()
 
 
@@ -216,16 +216,16 @@ func alter_value(
 	value: String, 
 	emit_signal_state: bool = true
 ) -> void:
-	var previous = _grid_data.get(coordinate, "")
+	var previous = grid_data.get(coordinate, "")
 	if value != "":
 		if previous != value:
-			_grid_data[coordinate] = value
+			grid_data[coordinate] = value
 			if emit_signal_state:
 				var cell = get_cell(coordinate)
 				self.cell_value_changed.emit(cell, coordinate, previous, value )
 	else:
-		if _grid_data.has(coordinate):
-			_grid_data.erase(coordinate)
+		if grid_data.has(coordinate):
+			grid_data.erase(coordinate)
 			if emit_signal_state:
 				var cell = get_cell(coordinate)
 				self.cell_value_changed.emit(cell, coordinate, previous, "")
@@ -237,7 +237,7 @@ func force_update_cell_list():
 	var coordinate
 	for cell in _cell_to_origin_coordinate_map:
 		coordinate = get_cell_coordinate(cell)
-		cell.show_value(_grid_data.get(coordinate))
+		cell.show_value(grid_data.get(coordinate))
 	
 	# 更新单元格的宽高
 	var top_left = get_scroll_top_left()
@@ -406,3 +406,6 @@ func _newly_added_cell(coordinate: Vector2i, new_cell: InputCell):
 		
 	)
 
+
+func _on_table_container_grid_tile_size_changed(grid_size):
+	_serial_number_container.update_grid_tile_count(grid_size)

@@ -183,7 +183,7 @@ func add_menu(menu_data, parent_menu_path: StringName):
 				parent_popup_menu.add_item(menu_name, _auto_increment_menu_idx)
 				_idx_to_menu_path_map[_auto_increment_menu_idx] = menu_path
 				_menu_path_to_idx_map[menu_path] = _auto_increment_menu_idx
-				_menu_path_to_popup_menu_map[menu_path] = null
+				_menu_path_to_popup_menu_map[menu_path] = parent_popup_menu
 				if not _child_menu_path_idx_list.has(parent_menu_path):
 					_child_menu_path_idx_list[parent_menu_path] = []
 				_child_menu_path_idx_list[parent_menu_path].append(_auto_increment_menu_idx)

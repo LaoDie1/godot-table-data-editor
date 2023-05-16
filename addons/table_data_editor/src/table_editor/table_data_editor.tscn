@@ -1,8 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://b40gmpntb60fc"]
+[gd_scene load_steps=5 format=3 uid="uid://smtvc4png2p1"]
 
 [ext_resource type="Script" path="res://addons/table_data_editor/src/table_editor/table_data_editor.gd" id="1_hdoi3"]
 [ext_resource type="Script" path="res://addons/table_data_editor/src/component/menu/menu_list.gd" id="2_b355i"]
-[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/edit_grid/edit_grid.tscn" id="3_koba7"]
+[ext_resource type="PackedScene" uid="uid://c25057ludesub" path="res://addons/table_data_editor/src/component/table_edit/table_edit.tscn" id="3_koba7"]
 [ext_resource type="PackedScene" path="res://addons/table_data_editor/src/export_preview/export_preview.tscn" id="4_x6qb8"]
 
 [node name="table_data_editor" type="MarginContainer"]
@@ -38,7 +38,7 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 
-[node name="edit_grid" parent="VBoxContainer/GridContainer" instance=ExtResource("3_koba7")]
+[node name="table_edit" parent="VBoxContainer/GridContainer" instance=ExtResource("3_koba7")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
@@ -152,8 +152,8 @@ size_flags_vertical = 0
 text = "按住 Alt 键进行左右滚动，松开即可上下滚动"
 
 [connection signal="menu_pressed" from="VBoxContainer/menu_list" to="." method="_on_menu_list_menu_pressed"]
-[connection signal="cell_value_changed" from="VBoxContainer/GridContainer/edit_grid" to="." method="_on_edit_grid_cell_value_changed"]
-[connection signal="scroll_changed" from="VBoxContainer/GridContainer/edit_grid" to="." method="_on_edit_grid_scroll_changed"]
+[connection signal="cell_value_changed" from="VBoxContainer/GridContainer/table_edit" to="." method="_on_table_edit_cell_value_changed"]
+[connection signal="scroll_changed" from="VBoxContainer/GridContainer/table_edit" to="." method="_on_table_edit_scroll_changed"]
 [connection signal="text_submitted" from="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/scroll_pos" to="." method="_on_scroll_pos_text_submitted"]
 [connection signal="exported" from="export_preview_window/export_preview" to="." method="_on_export_preview_exported"]
 [connection signal="file_selected" from="save_as_dialog" to="." method="_on_save_as_dialog_file_selected"]

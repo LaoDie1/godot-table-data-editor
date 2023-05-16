@@ -14,14 +14,12 @@ extends GridContainer
 var serial_number_cell : PackedScene
 
 
-@onready 
-var _table_container := %table_container as TableContainer
-@onready 
-var _h_serial_number_container := %h_serial_number_container as HBoxContainer
-@onready 
-var _v_serial_number_container := %v_serial_number_container as VBoxContainer
-@onready 
-var _space = %space as Control
+var __init_node = InjectUtil.auto_inject(self, "_", true)
+
+var _table_container : TableContainer
+var _h_serial_number_container : HBoxContainer
+var _v_serial_number_container : VBoxContainer
+var _space : Control
 
 
 var _last_top_left : Vector2i
@@ -50,19 +48,21 @@ func update_serial_number(top_left: Vector2i):
 
 ## 更新这个行高
 func update_row_height(origin_row: int, height: int):
-	var node = _v_serial_number_container.get_child(origin_row) as Control
-	node.custom_minimum_size.y = height
+	if _v_serial_number_container.get_child_count() > 0:
+		var node = _v_serial_number_container.get_child(origin_row) as Control
+		node.custom_minimum_size.y = height
 
 ## 更新这个列宽
 func update_column_width(origin_column: int, width: int):
-	var node = _h_serial_number_container.get_child(origin_column) as Control
-	node.custom_minimum_size.x = width
+	if _h_serial_number_container.get_child_count() > 0:
+		var node = _h_serial_number_container.get_child(origin_column) as Control
+		node.custom_minimum_size.x = width
 
 
 #============================================================
 #  连接信号
 #============================================================
-func _on_table_container_grid_tile_size_changed(grid_size: Vector2i):
+func update_grid_tile_count(grid_size: Vector2i):
 	if _table_container == null:
 		while _table_container == null:
 			await get_tree().process_frame

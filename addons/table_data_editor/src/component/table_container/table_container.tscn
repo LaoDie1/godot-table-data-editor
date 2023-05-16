@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://bqv524ofmfge7"]
 
-[ext_resource type="Script" path="res://addons/table_data_editor/src/component/table/table_container.gd" id="1_mdu8g"]
-[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/table/row_container/row_container.tscn" id="2_6haa0"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/component/table_container/table_container.gd" id="1_mdu8g"]
+[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/table_edit/cell/input_cell/input_cell.tscn" id="2_6av5n"]
+[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/table_container/row_container/row_container.tscn" id="2_6haa0"]
 
 [node name="table_container" type="MarginContainer"]
 anchors_preset = 15
@@ -10,6 +11,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_mdu8g")
+cell = ExtResource("2_6av5n")
 
 [node name="control" type="Control" parent="."]
 unique_name_in_owner = true
@@ -30,7 +32,7 @@ grow_vertical = 1
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="update_row_column_amount" type="Timer" parent="."]
+[node name="update_row_column_amount_timer" type="Timer" parent="."]
 unique_name_in_owner = true
 wait_time = 0.05
 one_shot = true

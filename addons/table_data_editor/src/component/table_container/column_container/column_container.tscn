@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://addons/table_data_editor/src/component/table/column_container/column_container.gd" id="1_1xecd"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/component/table_container/column_container/column_container.gd" id="1_1xecd"]
 
 [node name="column_container" type="MarginContainer"]
 anchors_preset = 15

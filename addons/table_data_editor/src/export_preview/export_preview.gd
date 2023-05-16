@@ -126,7 +126,7 @@ func get_data_by_row() -> Array:
 #  内置
 #============================================================
 func _ready() -> void:
-	if not EditGridUtil.is_enabled():
+	if not TableEditUtil.is_enabled():
 		return 
 	
 	if _export_type.item_count == 0:
@@ -228,7 +228,7 @@ func _on_save_dialog_file_selected(path: String) -> void:
 		_:
 			data = {}
 	
-	EditGridUtil.save_as_string( path, _data_format(data) )
+	TableEditUtil.save_as_string( path, _data_format(data) )
 	_save_dialog.current_path = path
 	
 	print(" >>> 保存json数据：", path)

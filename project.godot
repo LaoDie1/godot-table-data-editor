@@ -13,3 +13,7 @@ config_version=5
 config/name="table-data-editor"
 config/features=PackedStringArray("4.0", "Forward Plus")
 config/icon="res://icon.svg"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/script_comment_menu/plugin.cfg", "res://addons/table_data_editor/plugin.cfg")

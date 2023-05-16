@@ -28,9 +28,12 @@ const RECENTLY_SHOW_MAX_NUMBER = 10
 const FILTERS = ["*.gdata; GData"]
 ## 菜单项数据
 const MENU_ITEM : Dictionary = {
-	"File": ["New", "-", "Open", {"Recently Opened": ["/"]}, "-", "Save", "Save As..."],
+	"File": [
+		"New", "Open", {"Recently Opened": ["/"]}, "-", 
+		"Save", "Save As...", "-", 
+		{"Export": ["JSON..."],},
+	],
 	"Edit": ["Undo", "Redo"],
-	"Export": ["JSON..."],
 	"Help": ["Operate"],
 }
 ## 菜单快捷键
@@ -85,28 +88,28 @@ var _is_reloaded := false :
 			_is_reloaded = v
 
 
+var __init_node = InjectUtil.auto_inject(self, "_")
+
 # 编辑表格节点
-@onready var _edit_grid := %edit_grid as EditGrid
+var _table_edit : TableEdit
 # 菜单列表
-@onready var _menu_list = %menu_list
+var _menu_list : MenuList
 # 滚动条位置输入框
-@onready var _scroll_pos := %scroll_pos as LineEdit
+var _scroll_pos : LineEdit
 # 切换页面（暂未完成）
-@onready var _pages = %pages
+var _pages : ItemList
 
+var _export_preview_window : Window
+var _save_as_dialog : FileDialog
 
-@onready var _export_preview_window := %export_preview_window as Window
-@onready var _save_as_dialog := %save_as_dialog as FileDialog
+var _open_file_dialog : FileDialog
+var _confirm_dialog : ConfirmationDialog
+var _tooltip_dialog : AcceptDialog
 
-@onready var _open_file_dialog := %open_file_dialog as FileDialog
-@onready var _confirm_dialog := %confirm_dialog as ConfirmationDialog
-@onready var _tooltip_dialog:= %tooltip_dialog as AcceptDialog
+var _export_preview : ExportPreview
 
-
-@onready var _export_preview := %export_preview as ExportPreview
-
-@onready var _saved_status_label := %saved_status_label as Label
-@onready var file_path_label := %file_path_label as Label
+var _saved_status_label : Label
+var file_path_label : Label
 
 
 
@@ -117,19 +120,19 @@ var _is_reloaded := false :
 func get_project_data() -> TableDataEditor_JsonData:
 	var json_data = TableDataEditor_JsonData.new()
 	json_data.version = 1.2
-	json_data.grid_data = _edit_grid.get_grid_data()
-	json_data.column_width = _edit_grid.get_column_width_data()
-	json_data.row_height = _edit_grid.get_row_height_data()
-	json_data.edit_dialog_size = _edit_grid.get_edit_dialog().box_size
+	json_data.grid_data = _table_edit.get_grid_data()
+	json_data.column_width = _table_edit.get_column_width_data()
+	json_data.row_height = _table_edit.get_row_height_data()
+	json_data.edit_dialog_size = _table_edit.get_edit_dialog().box_size
 	return json_data
 
 ## 获取表格数据
 func get_grid_data() -> Dictionary:
-	return _edit_grid.get_grid_data()
+	return _table_edit.get_grid_data()
 
 ## 获取编辑表格对象
-func get_edit_grid() -> EditGrid:
-	return _edit_grid
+func get_edit_grid() -> TableEdit:
+	return _table_edit
 
 ## 获取这一行有值的行。column 从 1 开始
 func get_has_value_row_in_column(column: int) -> Array[int]:
@@ -160,9 +163,6 @@ func get_has_value_rows() -> Array:
 #  内置
 #============================================================
 func _ready() -> void:
-	if not (EditGridUtil.is_enabled()):
-		return 
-	
 	_saved_path = ""
 	
 	_init_dialog()
@@ -251,7 +251,7 @@ func _load_last_data():
 
 # 更新路径信息
 func _update_path_data():
-	if EditGridUtil.is_enabled() and _is_reloaded:
+	if TableEditUtil.is_enabled() and _is_reloaded:
 		var data = TableDataEditor_PathData.new()
 		data.last_open_file = _saved_path
 		data.dialog_path = _dialog_path
@@ -272,7 +272,7 @@ func load_grid_data_by_path(path: String):
 		return
 	
 	print("[ TableDataEditor ] 加载数据：", path)
-	var data = EditGridUtil.read_data(path)
+	var data = TableEditUtil.read_data(path)
 	load_data(data)
 	
 	_saved_path = path
@@ -286,16 +286,16 @@ func load_data(data: Dictionary):
 	var json_data := JsonUtil.dict_to_object(data, TableDataEditor_JsonData) as TableDataEditor_JsonData
 	
 	# 设置数据
-	_edit_grid._column_to_width_map = json_data.column_width as Dictionary
-	_edit_grid._row_to_height_map = json_data.row_height as Dictionary
+	_table_edit._column_to_width_map = json_data.column_width as Dictionary
+	_table_edit._row_to_height_map = json_data.row_height as Dictionary
 	# 加载数据到表格中
-	_edit_grid.set_grid_data( json_data.grid_data )
-	_edit_grid.update_cell_list()
+	_table_edit.set_grid_data( json_data.grid_data )
+	_table_edit.update_cell_list()
 	if json_data.edit_dialog_size:
-		_edit_grid.get_edit_dialog().box_size = json_data.edit_dialog_size
+		_table_edit.get_edit_dialog().box_size = json_data.edit_dialog_size
 	
 	# 记录存在有值的行和列
-	for coord in _edit_grid.get_grid_data():
+	for coord in _table_edit.get_grid_data():
 		if not _has_value_row_map.has(coord.y):
 			_has_value_row_map[coord.y] = {}
 		_has_value_row_map[coord.y][coord.x] = null
@@ -313,7 +313,7 @@ func save_data_to(path: String):
 	
 	# 保存这次缓存数据
 	var data = JsonUtil.object_to_json(get_project_data())
-	EditGridUtil.save_data(path, data)
+	TableEditUtil.save_data(path, data)
 	print("[ TableDataEditor ] 已保存 TableDataEditor 数据")
 	print("[ TableDataEditor ] 保存到路径：", path)
 	
@@ -331,7 +331,7 @@ func save_as_json(path: String):
 	var has = FileAccess.file_exists(path)
 	
 	var data = get_grid_data()
-	EditGridUtil.save_as_string( path, JSON.stringify(data) )
+	TableEditUtil.save_as_string( path, JSON.stringify(data) )
 	print("[ TableDataEditor ] 已保存 TableDataEditor 数据")
 	print("[ TableDataEditor ] 保存到路径：", path)
 	
@@ -353,31 +353,31 @@ func show_save_dialog(default_file_name: String = ""):
 #============================================================
 #  连接信号
 #============================================================
-func _on_edit_grid_cell_value_changed(cell: InputCell, coordinate: Vector2i, previous: String, value: String):
+func _on_table_edit_cell_value_changed(cell: InputCell, coordinate: Vector2i, previous: String, value: String):
 	_saved = false
 	
 #	print("[ TableDataEditor ] 单元格发生改变")
 	
 	# 记录存在有数据的行列
 	_undo_redo.create_action("修改单元格的值")
-	_undo_redo.add_do_method( _edit_grid.alter_value.bind(coordinate, value, false) )
-	_undo_redo.add_do_method( _edit_grid.update_cell_list )
-	_undo_redo.add_undo_method( _edit_grid.alter_value.bind(coordinate, previous, false) )
-	_undo_redo.add_undo_method( _edit_grid.update_cell_list )
+	_undo_redo.add_do_method( _table_edit.alter_value.bind(coordinate, value, false) )
+	_undo_redo.add_do_method( _table_edit.update_cell_list )
+	_undo_redo.add_undo_method( _table_edit.alter_value.bind(coordinate, previous, false) )
+	_undo_redo.add_undo_method( _table_edit.update_cell_list )
 	_undo_redo.commit_action()
 	
 	# 撤销可用性
 	_menu_list.set_menu_disabled("/Edit/Undo", false)
 
 
-func _on_edit_grid_scroll_changed(coordinate: Vector2i):
+func _on_table_edit_scroll_changed(coordinate: Vector2i):
 	_scroll_pos.text = str(coordinate)
 
 
 func _on_scroll_pos_text_submitted(new_text):
 	var pos = str_to_var("Vector2i" + new_text)
 	if pos is Vector2i:
-		_edit_grid.scroll_to(pos)
+		_table_edit.scroll_to(pos)
 		print("[ TableDataEditor ] 跳转到位置：", pos)
 
 
@@ -447,5 +447,4 @@ func _on_export_preview_exported(path, data) -> void:
 
 func _on_open_file_dialog_file_selected(path):
 	load_grid_data_by_path(path)
-
 

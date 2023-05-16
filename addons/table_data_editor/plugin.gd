@@ -7,14 +7,17 @@
 extends EditorPlugin
 
 
-const MAIN = preload("src/json_editor/json_editor.tscn")
+const MAIN = preload("src/table_editor/table_data_editor.tscn")
 
 var main := MAIN.instantiate() as TableDataEditor
 # 第一次显示出来
 var first_show := false
 
 
-func _enter_tree():
+func _ready():
+	if Time.get_ticks_msec() < 5000:
+		await Engine.get_main_loop().create_timer(5).timeout
+	
 	main.visible = false
 	get_editor_interface().get_editor_main_screen().add_child(main)
 	main.call_deferred("set_anchors_preset", Control.PRESET_FULL_RECT)

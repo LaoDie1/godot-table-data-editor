@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/edit_grid/cell/base_cell_element.tscn" id="1_5yxaj"]
-[ext_resource type="Script" path="res://addons/table_data_editor/src/component/edit_grid/cell/serial_number_cell/serial_number_cell.gd" id="2_bf00s"]
+[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/table_edit/cell/base_cell_element.tscn" id="1_5yxaj"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/component/table_edit/cell/serial_number_cell/serial_number_cell.gd" id="2_bf00s"]
 
 [node name="serial_number_cell" instance=ExtResource("1_5yxaj")]
 offset_right = 50.0

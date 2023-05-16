@@ -3,7 +3,7 @@
 #============================================================
 # - datetime: 2022-11-26 21:56:34
 #============================================================
-class_name EditGridUtil
+class_name TableEditUtil
 
 
 #============================================================
@@ -45,7 +45,7 @@ static func read_text(path: String) -> String:
 static func get_editor_interface() -> EditorInterface:
 	if not Engine.is_editor_hint():
 		return null
-	const KEY = "EditGridUtil_get_editor_interface"
+	const KEY = "TableEditUtil_get_editor_interface"
 	if Engine.has_meta(KEY):
 		return Engine.get_meta(KEY)
 	else:

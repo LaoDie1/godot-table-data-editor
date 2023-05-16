@@ -4,6 +4,8 @@
 # - datetime: 2022-11-26 17:01:54
 #============================================================
 ## 表格
+##
+##这里只进行表格单元格相关管理，不进行数据的处理
 @tool
 class_name TableContainer
 extends MarginContainer
@@ -19,12 +21,10 @@ signal grid_tile_size_changed(grid_size: Vector2i)
 var cell : PackedScene
 
 
-@onready 
-var _row_container := %row_container as RowContainer
-@onready 
-var _update_row_column_amount_timer := %update_row_column_amount as Timer
-@onready 
-var control = %control
+var __init_node = InjectUtil.auto_inject(self, "_", true)
+
+var _row_container : RowContainer
+var _update_row_column_amount_timer : Timer
 
 
 # 表格单元格数量大小
@@ -84,15 +84,6 @@ func get_row_cells(row: int) -> Array:
 #  内置
 #============================================================
 func _ready() -> void:
-	if not (EditGridUtil.is_enabled()):
-		return 
-	
-	for i in 100:
-		if cell == null:
-			await Engine.get_main_loop().process_frame
-		else:
-			break
-	
 	assert(cell != null, "还没有设置 cell 属性！")
 	
 	# cell 的更新与大小

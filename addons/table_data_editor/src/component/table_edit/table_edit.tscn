@@ -1,13 +1,12 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=6 format=3 uid="uid://c25057ludesub"]
 
-[ext_resource type="PackedScene" uid="uid://crmrv3njsk3we" path="res://addons/table_data_editor/src/component/table/table_container.tscn" id="1_1uj5v"]
-[ext_resource type="Script" path="res://addons/table_data_editor/src/component/edit_grid/edit_grid.gd" id="1_b56jx"]
-[ext_resource type="Script" path="res://addons/table_data_editor/src/component/edit_grid/serial_number_container.gd" id="2_irx05"]
-[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/edit_grid/cell/input_cell/input_cell.tscn" id="3_wsn5w"]
-[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/edit_grid/cell/serial_number_cell/serial_number_cell.tscn" id="3_xe81h"]
-[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/edit_grid/edit_box_window/edit_box_window.tscn" id="6_mt1mb"]
+[ext_resource type="PackedScene" uid="uid://bqv524ofmfge7" path="res://addons/table_data_editor/src/component/table_container/table_container.tscn" id="1_1uj5v"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/component/table_edit/table_edit.gd" id="1_b56jx"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/component/table_edit/serial_number_container.gd" id="2_irx05"]
+[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/table_edit/cell/serial_number_cell/serial_number_cell.tscn" id="3_xe81h"]
+[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/component/table_edit/edit_box_window/edit_box_window.tscn" id="6_mt1mb"]
 
-[node name="edit_grid" type="MarginContainer"]
+[node name="table_edit" type="MarginContainer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -45,6 +44,7 @@ theme_override_constants/separation = 0
 
 [node name="Control2" type="Control" parent="serial_number_container"]
 clip_contents = true
+custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 mouse_filter = 2
 
@@ -78,7 +78,6 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-cell = ExtResource("3_wsn5w")
 
 [node name="v_scroll_bar" type="VScrollBar" parent="serial_number_container/Control3/grid_container"]
 unique_name_in_owner = true
@@ -109,10 +108,9 @@ wait_time = 0.02
 one_shot = true
 autostart = true
 
-[node name="edit_box_window" parent="." instance=ExtResource("6_mt1mb")]
+[node name="edit_popup_box" parent="." instance=ExtResource("6_mt1mb")]
 unique_name_in_owner = true
 layout_mode = 2
 
-[connection signal="scroll_changed" from="." to="serial_number_container" method="update_serial_number"]
-[connection signal="grid_cell_size_changed" from="serial_number_container/Control3/grid_container/table_container" to="serial_number_container" method="_on_table_container_grid_cell_size_changed"]
+[connection signal="grid_tile_size_changed" from="serial_number_container/Control3/grid_container/table_container" to="." method="_on_table_container_grid_tile_size_changed"]
 [connection signal="newly_added_cell" from="serial_number_container/Control3/grid_container/table_container" to="." method="_newly_added_cell"]
