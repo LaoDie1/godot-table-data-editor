@@ -252,6 +252,7 @@ func force_update_cell_list():
 		self.scroll_changed.emit( _latest_top_left )
 		_edit_popup_box.showed = false
 		_edit_popup_box.get_edit_box().visible = false
+		_serial_number_container.update_serial_number(top_left)
 
 
 ## 更新单元格信息（使用计时器缓冲更新，防止同一时间多次重复调用）

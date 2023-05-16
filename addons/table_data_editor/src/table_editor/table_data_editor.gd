@@ -404,6 +404,11 @@ func _on_menu_list_menu_pressed(idx, menu_path: String):
 		"/File/Save As...":
 			show_save_dialog("new_file." + CUSTOM_EXTENSION)
 		
+		"/File/Export/JSON...":
+#			show_save_dialog("new_file.json")
+			_export_preview_window.popup_centered_ratio(0.5)
+			_export_preview.update_example_content()
+		
 		"/Edit/Undo":
 			_undo_redo.undo()
 			_menu_list.set_menu_disabled("/Edit/Undo", not _undo_redo.has_undo())
@@ -413,11 +418,6 @@ func _on_menu_list_menu_pressed(idx, menu_path: String):
 			_undo_redo.redo()
 			_menu_list.set_menu_disabled("/Edit/Redo", not _undo_redo.has_redo())
 			_menu_list.set_menu_disabled("/Edit/Undo", false)
-		
-		"/Export/JSON...":
-#			show_save_dialog("new_file.json")
-			_export_preview_window.popup_centered_ratio(0.5)
-			_export_preview.update_example_content()
 		
 		"/Help/Operate":
 			_tooltip_dialog.popup_centered()
