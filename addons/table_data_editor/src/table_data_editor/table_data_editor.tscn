@@ -23,9 +23,10 @@ script = ExtResource("1_j3oce")
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 2
 
-[node name="menu_list" type="HBoxContainer" parent="VBoxContainer"]
+[node name="menu_list" type="MenuBar" parent="VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+flat = true
 script = ExtResource("2_jsb7y")
 
 [node name="GridContainer" type="HSplitContainer" parent="VBoxContainer"]
@@ -84,6 +85,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+text = "res://addons/table_data_editor/test.gdata"
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
@@ -105,14 +107,16 @@ text = "(saved)"
 
 [node name="export_preview_window" type="Window" parent="."]
 unique_name_in_owner = true
+title = "Export"
 position = Vector2i(0, -500)
 size = Vector2i(800, 400)
 visible = false
+wrap_controls = true
 exclusive = true
 
-[node name="export_preview" parent="export_preview_window" node_paths=PackedStringArray("json_editor") instance=ExtResource("4_qxigk")]
+[node name="export_preview" parent="export_preview_window" node_paths=PackedStringArray("table_data_editor") instance=ExtResource("4_qxigk")]
 unique_name_in_owner = true
-json_editor = NodePath("../..")
+table_data_editor = NodePath("../..")
 
 [node name="save_as_dialog" type="FileDialog" parent="."]
 unique_name_in_owner = true

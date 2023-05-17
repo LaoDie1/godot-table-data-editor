@@ -1,7 +1,13 @@
 #============================================================
 #    Export Preview
 #============================================================
+# - author: zhangxuetu
 # - datetime: 2022-11-27 17:45:09
+# - version: 4.0
+#============================================================
+#============================================================
+#    Export Preview
+#============================================================
 #============================================================
 # 导出预览
 @tool
@@ -29,7 +35,7 @@ enum ExportMode {
 const EXAMPLE_COUNT = 3
 
 
-@export var json_editor : TableDataEditor
+@export var table_data_editor : TableDataEditor
 
 
 var __init_node = InjectUtil.auto_inject(self, "_")
@@ -51,75 +57,24 @@ var button_group : ButtonGroup
 #============================================================
 #  SetGet
 #============================================================
-## 获取对应的行的每个有值的列 对应的值映射。row 从第 1 行开始
-func get_head_map(row: int) -> Dictionary:
-	var columns = json_editor.get_has_value_column_in_row(row)
-	# 头部字符串映射
-	var head_map = {}
-	var grid_data = json_editor.get_grid_data()
-	var coords : Vector2i = Vector2i()
-	for column in columns:
-		coords = Vector2i(column, row)
-		if grid_data.has(coords):
-			var value = grid_data[coords]
-			head_map[column] = value
-	return head_map
-
-
-## 获取普通的数据的 JSON
-func get_normal_format_data() -> Dictionary:
-	var data = {}
-	var grid_data = json_editor.get_grid_data()
-	var coords : Vector2i
-	for row in json_editor.get_has_value_rows():
-		var columns = json_editor.get_has_value_column_in_row(row)
-		for column in columns:
-			coords = Vector2i(column, row)
-			if grid_data.has(coords):
-				data[coords] = grid_data[coords]
-	return data
-
-
-## 获取以头部作为 key 的 json
-func get_head_key_data() -> Array[Dictionary]:
-	# 获取 _head_line_box.value 行中有值的列
-	var grid_data = json_editor.get_grid_data()
-	var key
-	var value
-	var data_list : Array[Dictionary] = []
-	var data : Dictionary
-	var has_value_rows = json_editor.get_has_value_rows() as Array
-	for i in (int(_head_line_box.value) + 1):
-		has_value_rows.erase(i)
-	for row in has_value_rows:
-		data = {}
-		for column in _head_map:
-			key = _head_map[column]
-			value = grid_data.get(Vector2i(column, row), "")
-			data[key] = value
-		data_list.append(data)
-	return data_list
-
-
 ## 将有值的行的数据进行保存
 func get_data_by_row() -> Array:
-	var data_list = []
-	var grid_data = json_editor.get_grid_data()
-	var coords : Vector2i
-	for row in json_editor.get_has_value_rows():
+	var result : Array = []
+	var head_row_number : int = _head_line_box.value
+	var data_set = table_data_editor.get_table_edit().get_data_set()
+	var head_row_data : Dictionary = data_set.grid_data.get(head_row_number, {})
+	head_row_number += 1
+	for row in range(head_row_number, min(data_set.grid_data.size(), head_row_number + EXAMPLE_COUNT)):
 		var data = {}
-		var columns = json_editor.get_has_value_column_in_row(row)
-		for column in columns:
-			coords = Vector2i(column, row)
-			if grid_data.has(coords):
-				data[coords] = grid_data[coords]
-		data_list.append(data)
-	return data_list
+		var row_data = data_set.grid_data[row]
+		for column in head_row_data:
+			data[head_row_data[column]] = row_data.get(column, "")
+		result.append(data)
+	return result
 
 
 func get_csv_data() -> Array:
-	var data_set = json_editor._table_edit._data_set as TableDataEditor_TableDataSet
-	
+	var data_set = table_data_editor.get_table_edit().data_set as TableDataEditor_TableDataSet
 	var max_column : int = data_set.get_max_column()
 	if max_column == 0:
 		return []
@@ -158,37 +113,19 @@ func _data_format(data) -> String:
 	return JSON.stringify(data, "" if _compact.button_pressed else "\t")
 
 
-func _update_normal():
-	var example = {}
-	var data = get_normal_format_data()
-	for i in data:
-		example[i] = data[i]
-		if example.size() == EXAMPLE_COUNT:
-			break
-	
-	_text_box.text = JSON.stringify(example, "\t")
-
-
-func _update_head_as_key():
-	# 头部字符串映射
-	_head_map = get_head_map( int(_head_line_box.value) )
-	
-	var example_list = []
-	for i in get_head_key_data():
-		example_list.append(i)
-		if example_list.size() == EXAMPLE_COUNT:
-			break
-	
-	_text_box.text = JSON.stringify(example_list, "\t")
-
-
 func _update_by_row():
-	var data_list = []
-	for i in get_csv_data():
-		data_list.append(i)
-		if data_list.size() == EXAMPLE_COUNT:
-			break
-	
+	var data_list = get_data_by_row()
+	var examples = []
+	for i in range(min(data_list.size(), EXAMPLE_COUNT)):
+		examples.append(data_list[i])
+	_text_box.text = JSON.stringify(data_list, "\t")
+
+
+func _update_by_csv():
+	var data_list = get_csv_data()
+	var examples = []
+	for i in range(min(data_list.size(), EXAMPLE_COUNT)):
+		examples.append(data_list[i])
 	_text_box.text = JSON.stringify(data_list, "\t")
 
 
@@ -197,9 +134,9 @@ func update_text_box_content():
 	_text_box.text = ""
 	match button_group.get_pressed_button().name:
 		"json":
-			_update_head_as_key()
-		"csv":
 			_update_by_row()
+		"csv":
+			_update_by_csv()
 
 
 #============================================================
@@ -220,7 +157,7 @@ func _on_save_dialog_file_selected(path: String) -> void:
 		"csv":
 			data =  get_csv_data()
 		"json":
-			data = get_head_key_data()
+			data = get_data_by_row()
 		_:
 			data = {}
 	
@@ -231,3 +168,5 @@ func _on_save_dialog_file_selected(path: String) -> void:
 	self.exported.emit(path, data)
 
 
+func _on_cancel_pressed():
+	get_parent().hide()

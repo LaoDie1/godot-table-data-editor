@@ -14,9 +14,9 @@ extends MarginContainer
 ## 文件扩展名
 const CUSTOM_EXTENSION = "gdata"
 ## 上次编辑的数据内容
-const CACHE_DATA_PATH = "res://.godot/json_editor/~json_edit_grid_cache_data.gdata"
+const CACHE_DATA_PATH = "res://.godot/table_data_editor/~json_edit_grid_cache_data.gdata"
 ## 上次操作的路径
-const LAST_PATH_DATA = "res://.godot/json_editor/path_data.json"
+const LAST_PATH_DATA = "res://.godot/table_data_editor/path_data.json"
 
 
 ## 修改时文件保存状态的颜色
@@ -31,8 +31,8 @@ const FILTERS = ["*.gdata; GData"]
 ## 菜单项数据
 const MENU_ITEM : Dictionary = {
 	"File": [
-		"New", "Open", {"Recently Opened": ["/"]}, "-", 
-		"Save", "Save As...", "-", 
+		"New", "Open", {"Recently Opened": ["/"]}, "-",
+		"Save", "Save As...", "-",
 		"Export...",
 	],
 	"Edit": ["Undo", "Redo"],
@@ -44,15 +44,19 @@ const MENU_SHORTCUT : Dictionary = {
 	"/File/Open": { "keycode": KEY_O, "ctrl": true },
 	"/File/Save": { "keycode": KEY_S, "ctrl": true },
 	"/File/Save As...": { "keycode": KEY_S, "ctrl": true, "shift": true },
+	"/File/Export...": { "keycode": KEY_E, "ctrl": true },
 	"/Edit/Undo": {"keycode": KEY_Z, "ctrl": true},
 	"/Edit/Redo": {"keycode": KEY_Z, "ctrl": true, "shift": true},
 }
 
 
-## 创建了新文件
-signal created_file(path)
-signal saved_file(path)
+signal created_file(path: String)
 
+
+var __init_data = SingletonDataUtil.register(self, func():
+	pass
+	
+)
 
 # 保存到的文件路径
 var _saved_path : String = "" :
@@ -81,8 +85,6 @@ var _undo_redo : UndoRedo = UndoRedo.new()
 
 # 上次打开的文件路径
 var _dialog_path : String = ""
-# 不久前打开过的文件
-var _recently_opend_path: Array = []
 # 是否已加载完成
 var _is_reloaded := false :
 	set(v):
@@ -114,13 +116,17 @@ var _saved_status_label : Label
 var file_path_label : Label
 
 
+var file_data := TableDataEditor_FileData.new({})
+var cache_data := TableDataEditor_CacheData.instance()
+
+
 
 #============================================================
 #  SetGet
 #============================================================
 ## 获取项目数据
-func get_project_data() -> TableDataEditor_FileData:
-	var json_data = TableDataEditor_FileData.new()
+func get_project_data():
+	var json_data = TableDataEditor_FileData.new({})
 	json_data.version = 1.3
 	json_data.grid_data = _table_edit.get_grid_data()
 	json_data.column_width = _table_edit.get_column_width_data()
@@ -128,56 +134,34 @@ func get_project_data() -> TableDataEditor_FileData:
 	json_data.edit_dialog_size = _table_edit.get_edit_dialog().box_size
 	return json_data
 
-## 获取表格数据
-func get_grid_data() -> Dictionary:
-	return _table_edit.get_grid_data()
-
 ## 获取编辑表格对象
-func get_edit_grid() -> TableEdit:
+func get_table_edit() -> TableEdit:
 	return _table_edit
-
-## 获取这一行有值的行。column 从 1 开始
-func get_has_value_row_in_column(column: int) -> Array[int]:
-	return Array(_has_value_column_map.get(column, {}).keys(), TYPE_INT, "", null)
-
-## 获取这一列有值的列。row 从 1 开始
-func get_has_value_column_in_row(row: int) -> Array[int]:
-	return Array(_has_value_row_map.get(row, {}).keys(), TYPE_INT, "", null)
-
-## 这一列是否有值
-func column_has_value(column: int) -> bool:
-	return _has_value_column_map.has(column)
-
-## 这一行是否有值
-func row_has_value(row: int) -> bool:
-	return _has_value_row_map.has(row)
-
-## 获取所有含有值的列
-func get_has_value_columns() -> Array:
-	return _has_value_column_map.keys()
-
-## 获取所有含有值的行
-func get_has_value_rows() -> Array:
-	return _has_value_row_map.keys()
 
 
 #============================================================
 #  内置
 #============================================================
 func _ready() -> void:
-	_saved_path = ""
+	file_data = TableDataEditor_FileData.new({})
+	cache_data = TableDataEditor_CacheData.instance()
 	
-	_init_dialog()
-	_init_menu()
-	
-	_load_last_data()
-	
-	_is_reloaded = true
+	(func():
+		_saved_path = ""
+		
+		_init_dialog()
+		_init_menu()
+		
+		_load_last_cache_data()
+		
+		_is_reloaded = true
+		
+	).call_deferred()
 
 
 func _exit_tree():
-	_update_path_data()
-
+	if not Engine.is_editor_hint() or TableDataUtil.Editor.is_enabled():
+		cache_data.save_data()
 
 
 #============================================================
@@ -185,8 +169,7 @@ func _exit_tree():
 #============================================================
 # 新建文件
 func _new_file() -> void:
-	load_data({})
-	_saved_path = ""
+	load_file_data("")
 
 
 # 初始化菜单列表
@@ -196,8 +179,8 @@ func _init_menu():
 	# 设置快捷键
 	_menu_list.init_shortcut(MENU_SHORTCUT)
 	
-	_menu_list.set_menu_disabled("/Edit/Undo", true)
-	_menu_list.set_menu_disabled("/Edit/Redo", true)
+	_menu_list.set_menu_disabled_by_path("/Edit/Undo", true)
+	_menu_list.set_menu_disabled_by_path("/Edit/Redo", true)
 
 
 # 初始化弹窗
@@ -205,7 +188,7 @@ func _init_dialog():
 	
 	# 数据导出预览
 	_export_preview_window.close_requested.connect( func(): _export_preview_window.visible = false )
-	_export_preview.json_editor = self
+	_export_preview.table_data_editor = self
 	
 	# 添加文件类型var FILTERS = ["*.gdata; GData"]
 	_open_file_dialog.filters = FILTERS
@@ -215,51 +198,28 @@ func _init_dialog():
 	var callable = func(dialog: FileDialog):
 		if dialog.current_dir != _dialog_path:
 			_dialog_path = dialog.current_dir
-			_update_path_data()
 	_open_file_dialog.visibility_changed.connect(callable.bind(_open_file_dialog))
 	_save_as_dialog.visibility_changed.connect(callable.bind(_save_as_dialog))
-	
 
 
 # 加载上次缓存的数据
-func _load_last_data():
-	if FileAccess.file_exists(LAST_PATH_DATA):
-		var json = FileUtil.read_as_text(LAST_PATH_DATA, true)
-		var path_data = JsonUtil.json_to_object(json, TableDataEditor_PathData) as TableDataEditor_PathData
-		
-		# 上次关闭时正在打开的文件
-		if FileAccess.file_exists(path_data.last_open_file):
-			load_grid_data_by_path(path_data.last_open_file)
-		
-		# 窗口路径
-		if DirAccess.dir_exists_absolute(path_data.dialog_path):
-			_dialog_path = path_data.dialog_path
-			_open_file_dialog.current_dir = path_data.dialog_path
-			_open_file_dialog.current_file = path_data.dialog_path
-			_save_as_dialog.current_dir = path_data.dialog_path
-			_save_as_dialog.current_file = path_data.dialog_path
-		
-		# 最近打开的文件
-		if path_data.recently_opend_path:
-			const RECENTLY_OPEND_MENU = "/File/Recently Opened"
-			_menu_list.remove_menu(RECENTLY_OPEND_MENU + "//") # 移除默认的 “/” 名称菜单
-			# 添加打开过的路径
-			_recently_opend_path = path_data.recently_opend_path
-			if _recently_opend_path.size() > RECENTLY_SHOW_MAX_NUMBER:
-				_recently_opend_path = _recently_opend_path.slice(_recently_opend_path.size() - RECENTLY_SHOW_MAX_NUMBER)
-			for path in _recently_opend_path:
-				_menu_list.add_menu(path, RECENTLY_OPEND_MENU)
-
-
-# 更新路径信息
-func _update_path_data():
-	if TableEditUtil.is_enabled() and _is_reloaded:
-		var data = TableDataEditor_PathData.new()
-		data.last_open_file = _saved_path
-		data.dialog_path = _dialog_path
-		data.recently_opend_path = _recently_opend_path
-		FileUtil.write_as_text(LAST_PATH_DATA, JsonUtil.object_to_json(data) )
-
+func _load_last_cache_data():
+	for dialog in [_open_file_dialog, _save_as_dialog]:
+		dialog.current_dir = cache_data.dialog_path
+		dialog.visibility_changed.connect(func():
+			if not dialog.visible:
+				cache_data.dialog_path = dialog.current_dir
+		)
+	
+	if cache_data.exists_opened_path():
+		load_file_data(cache_data.last_operation_path)
+	
+	# 添加打开过的路径
+	const RECENTLY_OPEND_MENU = "/File/Recently Opened"
+	var list = cache_data.get_recently_opend_paths()
+	list.reverse()
+	for path in list:
+		_menu_list.add_menu(path, RECENTLY_OPEND_MENU)
 
 
 #============================================================
@@ -268,102 +228,71 @@ func _update_path_data():
 ##  加载路径的数据
 ##[br]
 ##[br][code]path[/code]  加载这个路径的数据
-func load_grid_data_by_path(path: String):
-	if not FileAccess.file_exists(path):
-		push_error("<", path, "> 文件不存在")
-		return
+func load_file_data(path: String):
 	
-	print("[ TableDataEditor ] 加载数据：", path)
-	var data = TableEditUtil.read_data(path)
-	load_data(data)
+	# 这个文件的数据
+	file_data = TableDataEditor_FileData.load_file(path)
+	
+	# 加载到表格中
+	_table_edit.row_to_height_map = {}
+	_table_edit.column_to_width_map = {}
+	_table_edit.data_set = file_data.data_set
+	if not file_data.is_empty():
+		_table_edit.row_to_height_map = file_data.row_height
+		_table_edit.column_to_width_map = file_data.column_width
+	
+	_table_edit.get_edit_dialog().box_size = file_data.edit_dialog_size
+	_table_edit.get_edit_dialog().showed = false
+	_table_edit.update_cell_list()
 	
 	_saved_path = path
-	if not _recently_opend_path.has(path):
-		_recently_opend_path.push_back(path)
-		_update_path_data()
-
-
-## 加载数据
-func load_data(data: Dictionary):
-	var json_data := JsonUtil.dict_to_object(data, TableDataEditor_FileData) as TableDataEditor_FileData
-	
-	print(JSON.stringify(data, "\t"))
-	
-	if json_data.version == 1.2:
-		var grid_data = json_data.grid_data
-		var data_set = TableDataEditor_TableDataSet.new()
-		for coords in grid_data:
-			data_set.set_value(coords, grid_data[coords])
-		
-		json_data.grid_data = data_set.get_origin_data()
-		_table_edit._data_set = data_set
-	
-	
-	# 设置数据
-	_table_edit._column_to_width_map = json_data.column_width as Dictionary
-	_table_edit._row_to_height_map = json_data.row_height as Dictionary
-	# 加载数据到表格中
-	_table_edit.set_grid_data( json_data.grid_data )
-	_table_edit.update_cell_list()
-	if json_data.edit_dialog_size:
-		_table_edit.get_edit_dialog().box_size = json_data.edit_dialog_size
-	
-	# 记录存在有值的行和列
-#	for coord in _table_edit.get_grid_data():
-#		if not _has_value_row_map.has(coord.y):
-#			_has_value_row_map[coord.y] = {}
-#		_has_value_row_map[coord.y][coord.x] = null
-#		if not _has_value_column_map.has(coord.x):
-#			_has_value_column_map[coord.x] = {}
-#		_has_value_column_map[coord.x][coord.y] = null
-	
-	_table_edit.update_cell_list()
-	
 	_saved = true
-	_undo_redo.clear_history()
+	
+	cache_data.update_last_operation_path(path)
+	cache_data.save_data()
 
 
 ## 保存数据到这个路径中
 func save_data_to(path: String):
-	var has = FileAccess.file_exists(path)
-	
-	# 保存这次缓存数据
-	var data = JsonUtil.object_to_json(get_project_data())
-	TableEditUtil.save_data(path, data)
-	print("[ TableDataEditor ] 已保存 TableDataEditor 数据")
-	print("[ TableDataEditor ] 保存到路径：", path)
-	
-	self._update_path_data()
-	self._saved = true
-	self._saved_path = path
-	if has:
-		self.saved_file.emit(path)
-	else:
+	if file_data.save_data(path):
+		# 保存成功，则进行处理
+		self._saved = true
+		self._saved_path = path
+		cache_data.update_last_operation_path(path)
+		cache_data.save_data()
+		
 		self.created_file.emit(path)
+		
+		print("[ TableDataEditor ] 保存成功")
+		
+	else:
+		printerr("[ TableDataEditor ] 保存失败")
+
+
+## 加载数据
+func load_data(data_set : TableDataEditor_TableDataSet):
+	_table_edit.row_to_height_map = {}
+	_table_edit.column_to_width_map = {}
+	_table_edit.data_set = data_set
+	
+	_saved = true
+	_undo_redo.clear_history()
+	_table_edit.get_edit_dialog().showed = false
 
 
 ## 保存为 JSON
 func save_as_json(path: String):
-	var has = FileAccess.file_exists(path)
-	
-	var data = get_grid_data()
-	TableEditUtil.save_as_string( path, JSON.stringify(data) )
-	print("[ TableDataEditor ] 已保存 TableDataEditor 数据")
-	print("[ TableDataEditor ] 保存到路径：", path)
-	
-	self._saved = true
-	if has:
-		self.saved_file.emit(path)
-	else:
-		self.created_file.emit(path)
+	var data = _table_edit.data_set.get_origin_data()
+	TableDataUtil.Files.save_as_string(path, data)
+	self.created_file.emit(path)
 
 
 ## 显示保存 Dialog
 func show_save_dialog(default_file_name: String = ""):
 	if default_file_name != "":
 		_save_as_dialog.current_file = default_file_name
-#	_save_as_dialog.popup_centered(Vector2i(600, 400))
 	_save_as_dialog.popup_centered_ratio(0.5)
+
 
 
 #============================================================
@@ -383,7 +312,7 @@ func _on_table_edit_cell_value_changed(cell: InputCell, coords: Vector2i, previo
 	_undo_redo.commit_action()
 	
 	# 撤销可用性
-	_menu_list.set_menu_disabled("/Edit/Undo", false)
+	_menu_list.set_menu_disabled_by_path("/Edit/Undo", false)
 
 
 func _on_table_edit_scroll_changed(coords: Vector2i):
@@ -433,13 +362,13 @@ func _on_menu_list_menu_pressed(idx, menu_path: String):
 		
 		"/Edit/Undo":
 			_undo_redo.undo()
-			_menu_list.set_menu_disabled("/Edit/Undo", not _undo_redo.has_undo())
-			_menu_list.set_menu_disabled("/Edit/Redo", false)
+			_menu_list.set_menu_disabled_by_path("/Edit/Undo", not _undo_redo.has_undo())
+			_menu_list.set_menu_disabled_by_path("/Edit/Redo", false)
 		
 		"/Edit/Redo":
 			_undo_redo.redo()
-			_menu_list.set_menu_disabled("/Edit/Redo", not _undo_redo.has_redo())
-			_menu_list.set_menu_disabled("/Edit/Undo", false)
+			_menu_list.set_menu_disabled_by_path("/Edit/Redo", not _undo_redo.has_redo())
+			_menu_list.set_menu_disabled_by_path("/Edit/Undo", false)
 		
 		"/Help/Help":
 			_tooltip_dialog.popup_centered()
@@ -448,13 +377,13 @@ func _on_menu_list_menu_pressed(idx, menu_path: String):
 			if menu_path.contains("/File/Recently Opened"):
 				var file_path = menu_path.trim_prefix("/File/Recently Opened/")
 				if FileAccess.file_exists(file_path):
-					load_grid_data_by_path(file_path)
+					load_file_data(file_path)
 
 
 func _on_save_as_dialog_file_selected(path):
 	_saved_path = path
 	match _saved_path.get_extension():
-		CUSTOM_EXTENSION:
+		"gdata":
 			save_data_to( _saved_path )
 		"json":
 			save_as_json( _saved_path )
@@ -464,9 +393,9 @@ func _on_save_as_dialog_file_selected(path):
 
 func _on_export_preview_exported(path, data) -> void:
 	_export_preview_window.visible = false
-	self.created_file.emit(path)
 
 
-func _on_open_file_dialog_file_selected(path):
-	load_grid_data_by_path(path)
+func _on_open_file_dialog_file_selected(path: String):
+	cache_data.dialog_path = path.get_base_dir()
+	load_file_data(path)
 

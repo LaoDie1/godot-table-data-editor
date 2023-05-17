@@ -8,7 +8,7 @@
 ## 菜单列表
 @tool
 class_name MenuList
-extends HBoxContainer
+extends MenuBar
 
 
 ## 菜单被点击
@@ -70,7 +70,7 @@ func set_menu_shortcut(menu_path: StringName, data: Dictionary):
 
 
 ## 设置菜单的可用性
-func set_menu_disabled(menu_path: StringName, value: bool):
+func set_menu_disabled_by_path(menu_path: StringName, value: bool):
 	var menu = get_menu(menu_path)
 	var idx = get_menu_idx(menu_path)
 	if menu and idx > -1:
@@ -199,14 +199,14 @@ func add_menu(menu_data, parent_menu_path: StringName):
 		# 根菜单按钮
 		for menu_name in menu_data:
 			# 添加菜单按钮
-			var menu = MenuButton.new()
-			menu.switch_on_hover = true
-			menu.text = menu_name
+			
+			var menu := PopupMenu.new()
+			menu.name = menu_name
 			add_child(menu)
 			
 			# 设置属性
 			var menu_path = parent_menu_path.path_join(menu_name) 
-			_set_popup_menu(menu_path, menu.get_popup())
+			_set_popup_menu(menu_path, menu)
 			
 			# 添加这个按钮菜单的子菜单
 			add_menu(menu_data[menu_name], menu_path)

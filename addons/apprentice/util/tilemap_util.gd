@@ -193,7 +193,7 @@ static func get_foothold_cell(tilemap: TileMap, coords: Vector2i, layer: int = 0
 	var used_rect = tilemap.get_used_rect()
 	var left : Vector2i
 	var right : Vector2i
-	var coords : Array = [null, null]
+	var coords_left_right : Array = [null, null]
 	
 	# 左。中上不能有其他瓦片
 	if (tilemap.get_cell_source_id(layer, coords + Vector2i(-1, -1)) == -1
@@ -202,7 +202,7 @@ static func get_foothold_cell(tilemap: TileMap, coords: Vector2i, layer: int = 0
 		for i in (used_rect.end.y - coords.y):
 			left = coords + Vector2i(-1, i)
 			if tilemap.get_cell_source_id(layer, left) != -1:
-				coords[0] = left
+				coords_left_right[0] = left
 				break
 		
 	# 右。中上不能有其他瓦片
@@ -212,10 +212,10 @@ static func get_foothold_cell(tilemap: TileMap, coords: Vector2i, layer: int = 0
 		for i in (used_rect.end.y - coords.y):
 			right = coords + Vector2i(1, i)
 			if tilemap.get_cell_source_id(layer, right) != -1:
-				coords[1] = right
+				coords_left_right[1] = right
 				break
 	
-	return coords
+	return coords_left_right
 
 
 ## 获取可接触到的单元格点

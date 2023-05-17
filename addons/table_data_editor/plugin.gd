@@ -55,9 +55,9 @@ func _get_plugin_icon():
 		for y in image_size.y:
 			color = image.get_pixel(x, y)
 			if color.a != 0:
-				color.r = 0.8
-				color.g = 1
-				color.b = 0.8
+				color.r = 0.5
+				color.g = 0.5
+				color.b = 0.5
 				image.set_pixel(x, y, color)
 	var texture = ImageTexture.create_from_image(image)
 	return texture

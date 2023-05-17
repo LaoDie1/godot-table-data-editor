@@ -41,6 +41,11 @@ var _update_grid_data_timer : Timer
 var _serial_number_container : SerialNumberContainer
 
 
+var __listene_open_file = SingletonDataUtil.listene_load_data(func(data):
+	pass
+	print_debug("打开文件：", data)
+)
+
 # 表格中的数据 data[row][column] = data 
 var grid_data := {}:
 	set(v):
@@ -53,12 +58,20 @@ var grid_data := {}:
 var default_tile_size : Vector2i
 
 # 数据集，管理获取数据
-var _data_set : TableDataEditor_TableDataSet = TableDataEditor_TableDataSet.new()
+var data_set : TableDataEditor_TableDataSet = TableDataEditor_TableDataSet.new():
+	set(v):
+		data_set = v
+		
+		# 当前线程其他代码调用完成后调用这个
+		(func():
+			update_cell_list()
+			scroll_to(Vector2i(0,0))
+		).call_deferred()
 
 # 行对应的行高
-var _row_to_height_map := {}
+var row_to_height_map := {}
 # 列对应的列宽
-var _column_to_width_map := {}
+var column_to_width_map := {}
 
 # 是否允许发出取消选中 cell 的信号
 var _enabled_emit_deselected_signal := true
@@ -81,15 +94,11 @@ var _updated : bool = false
 #============================================================
 #  SetGet
 #============================================================
-## 设置表格数据
-func set_grid_data(data: Dictionary):
-	grid_data = data
-	
-	update_cell_list()
-	scroll_to(Vector2i(0,0))
-
 func get_grid_data() -> Dictionary:
 	return grid_data
+
+func get_data_set() -> TableDataEditor_TableDataSet:
+	return data_set
 
 ## 获取当前滚动到的左上角位置
 func get_scroll_top_left() -> Vector2i:
@@ -118,19 +127,19 @@ func get_cell_node(coords: Vector2i) -> InputCell:
 
 ## 获取列宽
 func get_column_width(column: int, default_width: int = 0):
-	return _column_to_width_map.get(column, default_width)
+	return column_to_width_map.get(column, default_width)
 
 ## 获取行高
 func get_row_height(row: int, default_heigt : int = 0):
-	return _row_to_height_map.get(row, default_heigt)
+	return row_to_height_map.get(row, default_heigt)
 
 ## 获取列宽数据，数据中的 key 为列值，对应列宽
 func get_column_width_data() -> Dictionary:
-	return _column_to_width_map
+	return column_to_width_map
 
 ## 获取行高数据，数据中的 key 为行值，对应行宽
 func get_row_height_data() -> Dictionary:
-	return _row_to_height_map
+	return row_to_height_map
 
 ## 获取编辑弹窗
 func get_edit_dialog() -> EditPopupBox:
@@ -166,9 +175,10 @@ func _ready() -> void:
 	)
 	
 	# 必须要等空闲时间时调用，否则 _table_container 中的节点没有加载完成，则看不到节点的大小
-	await Engine.get_main_loop().process_frame.connect(func():
-		update_serial_num(Vector2i(0, 0))
-	, Object.CONNECT_ONE_SHOT)
+	update_serial_num.call_deferred(Vector2i(0, 0))
+#	await Engine.get_main_loop().process_frame.connect(func():
+#		update_serial_num(Vector2i(0, 0))
+#	, Object.CONNECT_ONE_SHOT)
 	self.default_tile_size = _table_container.get_tile_size()
 	
 	# 切换窗口时取消 alt 
@@ -224,15 +234,15 @@ func alter_value(
 	value: String, 
 	emit_signal_state: bool = true
 ) -> void:
-	var previous = _data_set.get_value(coords)
+	var previous = data_set.get_value(coords)
 	if value:
 		if previous != value:
-			_data_set.set_value(coords, value)
+			data_set.set_value(coords, value)
 			if emit_signal_state:
 				var cell = get_cell_node(coords)
 				self.cell_value_changed.emit(cell, coords, previous, value )
 	else:
-		if _data_set.remove_value(coords):
+		if data_set.remove_value(coords):
 			if emit_signal_state:
 				var cell = get_cell_node(coords)
 				self.cell_value_changed.emit(cell, coords, previous, "")
@@ -243,7 +253,7 @@ func alter_value(
 ##[br][code]row[/code]  所在的行，从 1 开始
 ##[br][code]height[/code]  设置的行高
 func alter_row_height(row: int, height: int):
-	_row_to_height_map[row] = height
+	row_to_height_map[row] = height
 	_alter_row_height(row, height)
 
 
@@ -252,7 +262,7 @@ func alter_row_height(row: int, height: int):
 ##[br][code]column[/code]  所在的列，从 1 开始
 ##[br][code]width[/code]  设置的列宽
 func alter_column_width(column: int, width: int):
-	_column_to_width_map[column] = width
+	column_to_width_map[column] = width
 	_alter_column_width(column, width)
 
 
@@ -273,7 +283,7 @@ func force_update_cell_list():
 	var coords : Vector2i
 	for cell in _cell_to_origin_coords_map:
 		coords = get_cell_coords(cell)
-		cell.show_value(_data_set.get_value(coords))
+		cell.show_value(data_set.get_value(coords))
 	
 	# 更新单元格的宽高
 	var grid_row_column_size = _table_container.get_grid_row_column_count_size()
@@ -367,7 +377,7 @@ func _newly_added_cell(coords: Vector2i, new_cell: InputCell):
 		_selected_cell = new_cell
 		# 弹窗编辑
 		var cell_coords = get_cell_coords(new_cell) # 这个表格的位置
-		_edit_popup_box.text = _data_set.get_value(cell_coords)
+		_edit_popup_box.text = data_set.get_value(cell_coords)
 		_edit_popup_box.popup(Rect2(new_cell.global_position, Vector2(0,0)))
 		
 	)
@@ -380,7 +390,7 @@ func _newly_added_cell(coords: Vector2i, new_cell: InputCell):
 		alter_column_width(current_coords.x, width)
 		
 		# 记录改变的列宽
-		_column_to_width_map[current_coords.x] = width
+		column_to_width_map[current_coords.x] = width
 		self.column_width_changed.emit(width)
 	)
 	
@@ -393,7 +403,7 @@ func _newly_added_cell(coords: Vector2i, new_cell: InputCell):
 		alter_row_height(current_coords.y, height)
 		
 		# 记录改变的行高
-		_row_to_height_map[current_coords.y] = height
+		row_to_height_map[current_coords.y] = height
 		self.row_height_changed.emit(height)
 		
 	)

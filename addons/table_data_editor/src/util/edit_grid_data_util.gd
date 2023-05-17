@@ -60,7 +60,7 @@ static func is_enabled() -> bool:
 		return false
 	if get_editor_interface() == null:
 		return false
-	return get_editor_interface().is_plugin_enabled("json_editor")
+	return get_editor_interface().is_plugin_enabled("table_data_editor")
 
 
 ## 当前插件是否是打开的
@@ -69,7 +69,7 @@ static func is_main_node() -> bool:
 	for child in node.get_children():
 		if child is Control and child.visible:
 			# 显示的是当前插件的名称
-			return child.name == 'json_editor'
+			return child.name == 'table_data_editor'
 	return false
 
 
