@@ -143,7 +143,7 @@ size_flags_horizontal = 3
 [node name="save_dialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
 size = Vector2i(343, 159)
-filters = PackedStringArray("*.json; JSON")
+filters = PackedStringArray("*.json; JSON", "*.csv; CSV")
 
 [connection signal="value_changed" from="MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/head_as_key_panel/head_line_box" to="." method="_on_head_line_box_value_changed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/HBoxContainer/export" to="." method="_on_export_pressed"]

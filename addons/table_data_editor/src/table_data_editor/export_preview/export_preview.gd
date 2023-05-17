@@ -73,13 +73,13 @@ func get_data_by_row() -> Array:
 	return result
 
 
-func get_csv_data() -> Array:
+func get_csv_data() -> Array[String]:
 	var data_set = table_data_editor.get_table_edit().data_set as TableDataEditor_TableDataSet
 	var max_column : int = data_set.get_max_column()
 	if max_column == 0:
 		return []
 	
-	var csv_list : Array = []
+	var csv_list : Array[String] = []
 	for row in range(1, data_set.get_max_column() + 1):
 		var line : Array = []
 		for column in range(1, max_column + 1):
@@ -147,7 +147,9 @@ func _on_head_line_box_value_changed(value: float) -> void:
 
 
 func _on_export_pressed() -> void:
+	_save_dialog.current_file = "new_file." + str(button_group.get_pressed_button().name)
 	_save_dialog.popup_centered_ratio(0.5)
+	
 #	_save_dialog.popup_centered( Vector2i(600, 400) )
 
 
@@ -155,13 +157,12 @@ func _on_save_dialog_file_selected(path: String) -> void:
 	var data
 	match button_group.get_pressed_button().name:
 		"csv":
-			data =  get_csv_data()
+			data = "\n".join(get_csv_data())
+			TableEditUtil.save_as_string( path, data )
 		"json":
 			data = get_data_by_row()
-		_:
-			data = {}
+			TableEditUtil.save_as_string( path, _data_format(data) )
 	
-	TableEditUtil.save_as_string( path, _data_format(data) )
 	_save_dialog.current_path = path
 	
 	print(" >>> 保存json数据：", path)
