@@ -43,7 +43,6 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-row_to_height_map = {}
 
 [node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -116,9 +115,8 @@ visible = false
 wrap_controls = true
 exclusive = true
 
-[node name="export_preview" parent="export_preview_window" node_paths=PackedStringArray("table_data_editor") instance=ExtResource("4_qxigk")]
+[node name="export_preview" parent="export_preview_window" instance=ExtResource("4_qxigk")]
 unique_name_in_owner = true
-table_data_editor = NodePath("../..")
 
 [node name="save_as_dialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
@@ -165,7 +163,6 @@ text = "按住 Alt 键进行左右滚动，松开即可上下滚动"
 [connection signal="scroll_changed" from="VBoxContainer/GridContainer/table_edit" to="." method="_on_table_edit_scroll_changed"]
 [connection signal="text_submitted" from="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/scroll_pos" to="." method="_on_scroll_pos_text_submitted"]
 [connection signal="gui_input" from="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/file_path_label" to="." method="_on_file_path_label_gui_input"]
-[connection signal="exported" from="export_preview_window/export_preview" to="." method="_on_export_preview_exported"]
 [connection signal="file_selected" from="save_as_dialog" to="." method="_on_save_as_dialog_file_selected"]
 [connection signal="file_selected" from="open_file_dialog" to="." method="_on_open_file_dialog_file_selected"]
 [connection signal="confirmed" from="confirm_dialog" to="." method="_new_file"]

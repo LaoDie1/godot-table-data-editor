@@ -11,14 +11,6 @@ class_name TableDataEditor
 extends MarginContainer
 
 
-## 文件扩展名
-const CUSTOM_EXTENSION = "gdata"
-## 上次编辑的数据内容
-const CACHE_DATA_PATH = "res://.godot/table_data_editor/~json_edit_grid_cache_data.gdata"
-## 上次操作的路径
-const LAST_PATH_DATA = "res://.godot/table_data_editor/path_data.json"
-
-
 ## 修改时文件保存状态的颜色
 const NOT_SAVED_COLOR = Color(1, 0.65, 0.275, 1)
 const SAVED_COLOR = Color(1, 1, 1, 0.625)
@@ -349,10 +341,9 @@ func _on_menu_list_menu_pressed(idx, menu_path: String):
 				save_data_to(_saved_path)
 		
 		"/File/Save As...":
-			show_save_dialog("new_file." + CUSTOM_EXTENSION)
+			show_save_dialog("new_file.gdata")
 		
 		"/File/Export...":
-#			show_save_dialog("new_file.json")
 			_export_preview_window.popup_centered_ratio(0.5)
 			_export_preview.update_text_box_content()
 		

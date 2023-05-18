@@ -53,8 +53,10 @@ static func instance() -> TableDataEditor_CacheData:
 	
 	else:
 		var object = TableDataEditor_CacheData.new()
-		var bytes = FileAccess.get_file_as_bytes(CACHE_DATA_PATH)
-		var data = bytes_to_var(bytes)
+		var data
+		if FileAccess.file_exists(CACHE_DATA_PATH):
+			var bytes = FileAccess.get_file_as_bytes(CACHE_DATA_PATH)
+			data = bytes_to_var(bytes)
 		if data is Dictionary:
 			TableDataUtil.Classes.set_property_by_dict(object, data)
 		
@@ -71,6 +73,7 @@ static func save_data() -> void:
 ## 存在打开的文件
 func exists_opened_path() -> bool:
 	return last_operation_path != "" and FileAccess.file_exists(last_operation_path)
+
 
 func update_last_operation_path(path: String):
 	path = path.strip_edges()
