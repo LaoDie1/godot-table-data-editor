@@ -6,7 +6,7 @@
 # - version: 4.0
 #============================================================
 # 预览导出
-#@tool
+@tool
 class_name ExportPreviewWindow
 extends Window
 
