@@ -6,9 +6,9 @@
 # - version: 4.0
 #============================================================
 # 预览导出
-@tool
-class_name ExportPreview
-extends MarginContainer
+#@tool
+class_name ExportPreviewWindow
+extends Window
 
 
 ## 导出 json 数据
@@ -76,7 +76,7 @@ func get_csv_data() -> Array[String]:
 		return []
 	
 	var csv_list : Array[String] = []
-	for row in range(1, data_set.get_max_column() + 1):
+	for row in data_set.get_row_list():
 		var line : Array = []
 		for column in range(1, max_column + 1):
 			line.append(
@@ -155,15 +155,22 @@ func _on_save_dialog_file_selected(path: String) -> void:
 		"csv":
 			data = "\n".join(get_csv_data())
 			TableDataUtil.Files.save_as_string( path, data )
+			
+			# 导出的文件保持默认文件，不作为翻译文件
+			var keep_import_path = path + ".import"
+			TableDataUtil.Files.save_as_string(keep_import_path, '[remap]\n\nimporter="keep"\n\n')
+			
+			
 		"json":
 			data = get_data_by_head_row()
 			TableDataUtil.Files.save_as_string( path, _data_format(data) )
 	
 	_save_dialog.current_path = path
 	
+	self.hide()
 	print("[ ExportPreview ] 保存数据：", path)
 	self.exported.emit(path, data)
 
 
 func _on_cancel_pressed():
-	get_parent().hide()
+	self.hide()

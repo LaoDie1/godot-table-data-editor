@@ -46,14 +46,12 @@ func has_value(coords: Vector2i) -> bool:
 		and grid_data[coords[ROW]].has(coords[COLUMN])
 	)
 
-
 func get_value(coords: Vector2i):
 	if has_value(coords):
 		var row : int = coords[ROW]
 		var column : int = coords[COLUMN]
 		return grid_data[row][column]
 	return ""
-
 
 func set_value(coords: Vector2i, value) -> void:
 	var row : int = coords[ROW]
@@ -73,7 +71,6 @@ func get_max_column() -> int:
 		return 0
 	return column_set.keys().max()
 
-
 func remove_value(coords: Vector2i) -> bool:
 	if has_value(coords):
 		var row : int = coords[ROW]
@@ -88,6 +85,10 @@ func remove_value(coords: Vector2i) -> bool:
 			column_set.erase(column)
 		return true
 	return false
+
+func get_row_list() -> Array[int]:
+	return Array(grid_data.keys(), TYPE_INT, "", null)
+
 
 
 #============================================================

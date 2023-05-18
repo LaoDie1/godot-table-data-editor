@@ -38,6 +38,7 @@ const MENU_SHORTCUT : Dictionary = {
 	"/File/Save": { "keycode": KEY_S, "ctrl": true },
 	"/File/Save As...": { "keycode": KEY_S, "ctrl": true, "shift": true },
 	"/File/Export...": { "keycode": KEY_E, "ctrl": true },
+	"/File/Import...": { "keycode": KEY_I, "ctrl": true },
 	"/Edit/Undo": {"keycode": KEY_Z, "ctrl": true},
 	"/Edit/Redo": {"keycode": KEY_Z, "ctrl": true, "shift": true},
 }
@@ -91,14 +92,12 @@ var _scroll_pos : LineEdit
 # 切换页面（暂未开始）
 var _pages : ItemList
 
-var _export_preview_window : Window
-var _save_as_dialog : FileDialog
-
-var _open_file_dialog : FileDialog
+var _export_preview_window : ExportPreviewWindow
 var _confirm_dialog : ConfirmationDialog
 var _tooltip_dialog : AcceptDialog
-
-var _export_preview : ExportPreview
+var _save_as_dialog : FileDialog
+var _open_file_dialog : FileDialog
+var _import_dialog : FileDialog
 
 var _saved_status_label : Label
 var file_path_label : Label
@@ -106,7 +105,6 @@ var file_path_label : Label
 
 var file_data := TableDataEditor_FileData.new({})
 var cache_data := TableDataEditor_CacheData.instance()
-
 
 
 #============================================================
@@ -121,6 +119,7 @@ func get_project_data():
 	json_data.row_height = _table_edit.get_row_height_data()
 	json_data.edit_dialog_size = _table_edit.get_edit_dialog().box_size
 	return json_data
+
 
 ## 获取编辑表格对象
 func get_table_edit() -> TableEdit:
@@ -157,7 +156,7 @@ func _exit_tree():
 #============================================================
 # 新建文件
 func _new_file() -> void:
-	load_file_data("")
+	load_file_path("")
 
 
 # 初始化菜单列表
@@ -176,11 +175,11 @@ func _init_dialog():
 	
 	# 数据导出预览
 	_export_preview_window.close_requested.connect( func(): _export_preview_window.visible = false )
-	_export_preview.table_data_editor = self
 	
 	# 添加文件类型var FILTERS = ["*.gdata; GData"]
 	_open_file_dialog.filters = FILTERS
 	_save_as_dialog.filters = FILTERS
+	_import_dialog.filters = ["*.csv; CSV"]
 	
 	# 打开窗口的路径位置
 	var callable = func(dialog: FileDialog):
@@ -192,7 +191,7 @@ func _init_dialog():
 
 # 加载上次缓存的数据
 func _load_last_cache_data():
-	for dialog in [_open_file_dialog, _save_as_dialog]:
+	for dialog in [_open_file_dialog, _save_as_dialog, _import_dialog]:
 		dialog.current_dir = cache_data.dialog_path
 		dialog.visibility_changed.connect(func():
 			if not dialog.visible:
@@ -200,7 +199,7 @@ func _load_last_cache_data():
 		)
 	
 	if cache_data.exists_opened_path():
-		load_file_data(cache_data.last_operation_path)
+		load_file_path(cache_data.last_operation_path)
 	
 	# 添加打开过的路径
 	const RECENTLY_OPEND_MENU = "/File/Recently Opened"
@@ -216,28 +215,38 @@ func _load_last_cache_data():
 ##  加载路径的数据
 ##[br]
 ##[br][code]path[/code]  加载这个路径的数据
-func load_file_data(path: String):
-	
+func load_file_path(path: String):
 	# 这个文件的数据
-	file_data = TableDataEditor_FileData.load_file(path)
-	
-	# 加载到表格中
-	_table_edit.row_to_height_map = {}
-	_table_edit.column_to_width_map = {}
-	_table_edit.data_set = file_data.data_set
-	if not file_data.is_empty():
-		_table_edit.row_to_height_map = file_data.row_height
-		_table_edit.column_to_width_map = file_data.column_width
-	
-	_table_edit.get_edit_dialog().box_size = file_data.edit_dialog_size
-	_table_edit.update_cell_list()
-	_table_edit.get_edit_dialog().showed = false
+	load_file_data(TableDataEditor_FileData.load_file(path))
 	
 	_saved_path = path
-	_saved = true
 	
-	cache_data.update_last_operation_path(path)
+	cache_data.update_last_operation_path(_saved_path)
 	cache_data.save_data()
+
+
+##  加载文件数据
+##[br]
+##[br][code]file_data[/code]  
+func load_file_data(file_data: TableDataEditor_FileData):
+	self.file_data = file_data
+	
+	# 加载到表格中
+	(func():
+		_table_edit.row_to_height_map = {}
+		_table_edit.column_to_width_map = {}
+		if not file_data.is_empty():
+			_table_edit.row_to_height_map = file_data.row_height
+			_table_edit.column_to_width_map = file_data.column_width
+		_table_edit.data_set = file_data.data_set
+		
+		_table_edit.get_edit_dialog().box_size = file_data.edit_dialog_size
+		_table_edit.update_cell_list()
+		_table_edit.get_edit_dialog().showed = false
+	).call_deferred()
+	
+	_saved = true
+	_saved_path = ""
 
 
 ## 保存数据到这个路径中
@@ -282,6 +291,26 @@ func show_save_dialog(default_file_name: String = ""):
 	_save_as_dialog.popup_centered_ratio(0.5)
 
 
+## 导入文件
+func import_file(path: String):
+	assert(path.get_extension() in ["csv"], "错误的文件型")
+	
+	# 加载 csv数据 到 数据集 中
+	var data_set = TableDataEditor_TableDataSet.new()
+	var csv_lines = TableDataUtil.Files.read_csv_file(path)
+	
+	var line : PackedStringArray
+	for row in csv_lines.size():
+		line = csv_lines[row]
+		for column in line.size():
+			data_set.set_value(Vector2i(column, row) + Vector2i.ONE, line[column])
+	
+	# 加载数据
+	var tmp_file_data = file_data.load_file("")
+	tmp_file_data.data_set = data_set
+	load_file_data(tmp_file_data)
+
+
 
 #============================================================
 #  连接信号
@@ -320,7 +349,7 @@ func _on_scroll_pos_text_submitted(new_text):
 		print("[ TableDataEditor ] 跳转到位置：", pos)
 
 
-func _on_menu_list_menu_pressed(idx, menu_path: String):
+func _on_menu_list_menu_pressed(idx, menu_path: StringName):
 #	print_debug("[ TableDataEditor ] 点击菜单 ", menu_path)
 	
 	match menu_path:
@@ -345,10 +374,10 @@ func _on_menu_list_menu_pressed(idx, menu_path: String):
 		
 		"/File/Export...":
 			_export_preview_window.popup_centered_ratio(0.5)
-			_export_preview.update_text_box_content()
+			_export_preview_window.update_text_box_content()
 		
 		"/File/Import...":
-			pass
+			_import_dialog.popup_centered_ratio(0.5)
 		
 		"/Edit/Undo":
 			_undo_redo.undo()
@@ -367,7 +396,7 @@ func _on_menu_list_menu_pressed(idx, menu_path: String):
 			if menu_path.contains("/File/Recently Opened"):
 				var file_path = menu_path.trim_prefix("/File/Recently Opened/")
 				if FileAccess.file_exists(file_path):
-					load_file_data(file_path)
+					load_file_path(file_path)
 
 
 func _on_save_as_dialog_file_selected(path):
@@ -381,13 +410,13 @@ func _on_save_as_dialog_file_selected(path):
 			printerr("[ TableDataEditor ] <Unknown Type> ", _saved_path.get_extension())
 
 
-func _on_export_preview_exported(path, data) -> void:
+func _on_export_preview_window_exported(path, json):
 	_export_preview_window.visible = false
 
 
 func _on_open_file_dialog_file_selected(path: String):
 	cache_data.dialog_path = path.get_base_dir()
-	load_file_data(path)
+	load_file_path(path)
 
 
 func _on_file_path_label_gui_input(event):
@@ -400,4 +429,5 @@ func _on_file_path_label_gui_input(event):
 
 func _on_table_edit_popup_edit_box_size_changed(box_size):
 	file_data.edit_dialog_size = box_size
+
 

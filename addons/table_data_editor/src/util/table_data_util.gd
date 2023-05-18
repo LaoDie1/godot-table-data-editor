@@ -65,6 +65,23 @@ class Files:
 			else data
 		)
 	
+	static func read_as_string(path: String) -> String:
+		if FileAccess.file_exists(path):
+			var reader = FileAccess.open(path, FileAccess.READ)
+			return reader.get_as_text()
+		return ""
+	
+	static func read_csv_file(path: String, delim: String = ",") -> Array[PackedStringArray]:
+		if FileAccess.file_exists(path):
+			var reader = FileAccess.open(path, FileAccess.READ)
+			var lines : Array[PackedStringArray]= []
+			var line = reader.get_csv_line(delim)
+			while line != PackedStringArray([""]):
+				lines.append(line)
+				line = reader.get_csv_line(delim)
+			return lines
+		return []
+	
 	static func get_absolute_path(path: String) -> String:
 		var reader = FileAccess.open(path, FileAccess.READ)
 		if reader:
