@@ -351,7 +351,7 @@ func switch_edit(coords: Vector2i, direction : Vector2i):
 			var top_left = get_scroll_top_left()
 			scroll_to(top_left + direction)
 			
-			await Engine.get_main_loop().process_frame
+			await Engine.get_main_loop().create_timer(0.1).timeout
 			edit_cell.call_deferred(next_coords)
 
 
