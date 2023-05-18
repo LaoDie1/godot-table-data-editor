@@ -19,8 +19,14 @@ signal data_set_changed
 signal selected_cell(cell: InputCell)
 ## 取消选中单元格
 signal deselected_cell(cell: InputCell)
+## 单击单元格
+signal single_clicked_cell(cell: InputCell)
 ## 双击单元格
-signal double_click_cell(cell: InputCell)
+signal double_clicked_cell(cell: InputCell)
+## 准备编辑单元格
+signal ready_edit_cell(cell: InputCell)
+## 已编辑单元格
+signal edited_cell(cell: InputCell)
 ## 单元格数据发生改变
 signal cell_value_changed(cell: InputCell, coords: Vector2i, previous: String, value: String)
 ## 滚动条滚动
@@ -33,6 +39,36 @@ signal column_width_changed(value: int)
 signal popup_edit_box_size_changed(box_size: Vector2)
 
 
+## 双击单元格进行编辑
+@export var double_click_edit : bool = true
+
+
+## 表格中的数据。格式：[code]data[row][column] = data[/code]
+var grid_data := {}:
+	set(v):
+		grid_data = v
+		
+		update_cell_list()
+		scroll_to(Vector2i(0,0))
+		self.data_set_changed.emit()
+## 默认单元格大小
+var default_tile_size : Vector2i
+## 数据集，管理获取数据
+var data_set : TableDataEditor_TableDataSet = TableDataEditor_TableDataSet.new():
+	set(v):
+		data_set = v
+		
+		# 当前线程其他代码调用完成后调用这个
+		(func():
+			update_cell_list()
+			scroll_to(Vector2i(0,0))
+		).call_deferred()
+## 行对应的行高
+var row_to_height_map := {}
+## 列对应的列宽
+var column_to_width_map := {}
+
+
 var __init_node = InjectUtil.auto_inject(self, "_", true)
 
 var _table_container : TableContainer
@@ -43,34 +79,7 @@ var _update_grid_data_timer : Timer
 var _serial_number_container : SerialNumberContainer
 
 
-# 表格中的数据 data[row][column] = data 
-var grid_data := {}:
-	set(v):
-		grid_data = v
-		
-		update_cell_list()
-		scroll_to(Vector2i(0,0))
-		self.data_set_changed.emit()
-
-var default_tile_size : Vector2i
-
-# 数据集，管理获取数据
-var data_set : TableDataEditor_TableDataSet = TableDataEditor_TableDataSet.new():
-	set(v):
-		data_set = v
-		
-		# 当前线程其他代码调用完成后调用这个
-		(func():
-			update_cell_list()
-			scroll_to(Vector2i(0,0))
-		).call_deferred()
-
-# 行对应的行高
-var row_to_height_map := {}
-# 列对应的列宽
-var column_to_width_map := {}
-
-# 是否允许发出取消选中 cell 的信号
+# 是否允许发出取消选中 cell 的信号，用于编辑表格数据，编辑的时候代表这个单元格还是被选中的
 var _enabled_emit_deselected_signal := true
 
 # 原始坐标位置对应的单元格
@@ -78,7 +87,13 @@ var _origin_coords_to_cell_map := {}
 # 单元格对应的原点坐标位置
 var _cell_to_origin_coords_map := {}
 # 当前选中的单元格
-var _selected_cell : InputCell
+var _selected_cell : InputCell:
+	set(v):
+		_selected_cell = v
+		if v != null:
+			_last_cell = v
+# 最后一次选中的单元格
+var _last_cell : InputCell
 # 上一次左上角的坐标位置 
 var _latest_top_left := Vector2i()
 
@@ -91,6 +106,10 @@ var _updated : bool = false
 #============================================================
 #  SetGet
 #============================================================
+## 获取编辑弹窗
+func get_edit_dialog() -> PopupEditBox:
+	return _popup_edit_box
+
 func get_grid_data() -> Dictionary:
 	return grid_data
 
@@ -118,10 +137,6 @@ func get_cell_node(coords: Vector2i) -> InputCell:
 	var origin_coords = coords - get_scroll_top_left()
 	return _origin_coords_to_cell_map.get(origin_coords) as InputCell
 
-## 获取这个行列坐标上的值
-#func get_value(coords: Vector2i) -> String:
-#	return grid_data.get(coords, "")
-
 ## 获取列宽
 func get_column_width(column: int, default_width: int = 0):
 	return column_to_width_map.get(column, default_width)
@@ -137,10 +152,6 @@ func get_column_width_data() -> Dictionary:
 ## 获取行高数据，数据中的 key 为行值，对应行宽
 func get_row_height_data() -> Dictionary:
 	return row_to_height_map
-
-## 获取编辑弹窗
-func get_edit_dialog() -> PopupEditBox:
-	return _popup_edit_box
 
 
 
@@ -159,16 +170,17 @@ func _ready() -> void:
 		update_cell_list()
 	)
 	
-	# 编辑表格窗
+	# 编辑表格窗。隐藏就更新对应的单元格的数据
 	_popup_edit_box.popup_hide.connect(func(value):
 		# 弹窗消失后才允许发送取消选中的信号
 		_enabled_emit_deselected_signal = true
 		# 更新选中的 cell
-		if _selected_cell:
-			_selected_cell.set_value( value )
-			var coords = get_cell_coords(_selected_cell)
+		if _last_cell:
+			_last_cell.set_value( value )
+			var coords = get_cell_coords(_last_cell)
 			alter_value(coords, value)
-#		print("[ TableEdit ] 文本发生改变")
+			self.edited_cell.emit(_last_cell)
+		
 	)
 	
 	# 必须要等空闲时间时调用，否则 _table_container 中的节点没有加载完成，则看不到节点的大小
@@ -314,6 +326,20 @@ func scroll_to(left_top: Vector2i):
 	_v_scroll_bar.scrolling.emit()
 
 
+## 编辑单元格
+func edit_cell(cell_coords: Vector2i):
+	_enabled_emit_deselected_signal = false
+	
+	var cell = get_cell_node(cell_coords)
+	
+	# 设置选中的 cell
+	_selected_cell = cell
+	
+	# 弹窗
+	_popup_edit_box.text = data_set.get_value(cell_coords)
+	_popup_edit_box.popup(Rect2(cell.global_position, Vector2(0,0)))
+	self.ready_edit_cell.emit(cell)
+
 
 #============================================================
 #  连接信号
@@ -365,18 +391,18 @@ func _newly_added_cell(coords: Vector2i, new_cell: InputCell):
 			self.deselected_cell.emit(new_cell)
 	)
 	
-	# 双击编辑
-	new_cell.double_click.connect(func(): 
-		self.double_click_cell.emit(new_cell)
-		_enabled_emit_deselected_signal = false
-		
-		# 设置选中的 cell
-		_selected_cell = new_cell
-		# 弹窗编辑
-		var cell_coords = get_cell_coords(new_cell) # 这个表格的位置
-		_popup_edit_box.text = data_set.get_value(cell_coords)
-		_popup_edit_box.popup(Rect2(new_cell.global_position, Vector2(0,0)))
-		
+	# 单击
+	new_cell.single_clicked.connect(func():
+		if not double_click_edit:
+			edit_cell(get_cell_coords(new_cell))
+		self.single_clicked_cell.emit(new_cell)
+	)
+	
+	# 双击
+	new_cell.double_clicked.connect(func(): 
+		if double_click_edit:
+			edit_cell(get_cell_coords(new_cell))
+		self.double_clicked_cell.emit(new_cell)
 	)
 	
 	# 水平拖拽移动

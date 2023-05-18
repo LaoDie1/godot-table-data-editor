@@ -9,8 +9,10 @@ class_name InputCell
 extends MarginContainer
 
 
+##单击单元格
+signal single_clicked
 ##双击单元格
-signal double_click
+signal double_clicked
 ##水平方向拖拽
 ##[br]
 ##[br][code]distance[/code] 为当前鼠标位置与第一次按下时鼠标位置的距离
@@ -118,7 +120,7 @@ func _gui_input(event):
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			var margin = custom_minimum_size - get_local_mouse_position()
 			if event.double_click:
-				double_click.emit()
+				self.double_clicked.emit()
 			else:
 				
 				_pressed_node_size = self.size
@@ -128,6 +130,8 @@ func _gui_input(event):
 					_latest_h_dragged = true
 				if margin.y <= self["theme_override_constants/margin_bottom"]:
 					_latest_v_dragged = true
+				
+				self.single_clicked.emit()
 			
 		else:
 			self.mouse_default_cursor_shape = Control.CURSOR_ARROW

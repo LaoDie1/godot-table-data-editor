@@ -26,6 +26,7 @@ layout_mode = 2
 [node name="menu_list" type="MenuBar" parent="VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+focus_mode = 1
 flat = true
 script = ExtResource("2_jsb7y")
 
@@ -46,7 +47,6 @@ size_flags_vertical = 3
 
 [node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
-metadata/_edit_group_ = true
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer"]
 layout_mode = 2
@@ -62,13 +62,31 @@ layout_mode = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
+focus_mode = 1
 text = "(1, 1)"
 alignment = 1
 select_all_on_focus = true
 
-[node name="Control" type="Control" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
+[node name="MarginContainer3" type="MarginContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 4
+
+[node name="Panel" type="Panel" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/MarginContainer3"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+
+[node name="Control" type="HBoxContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+focus_mode = 1
+
+[node name="CheckBox" type="CheckBox" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/Control"]
+layout_mode = 2
+button_pressed = true
+text = "Double click edit"
 
 [node name="MarginContainer2" type="MarginContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
@@ -86,8 +104,8 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 tooltip_text = "双击打开所在文件目录"
+focus_mode = 1
 mouse_filter = 0
-text = "res://addons/table_data_editor/test.gdata"
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
@@ -105,6 +123,7 @@ unique_name_in_owner = true
 self_modulate = Color(1, 1, 1, 0.625)
 layout_mode = 2
 size_flags_horizontal = 8
+focus_mode = 1
 text = "(saved)"
 
 [node name="export_preview_window" parent="." node_paths=PackedStringArray("table_data_editor") instance=ExtResource("4_8p413")]
@@ -138,7 +157,9 @@ size_flags_vertical = 3
 [node name="Label" type="Label" parent="tooltip_dialog/MarginContainer"]
 layout_mode = 2
 size_flags_vertical = 0
-text = "按住 Alt 键进行左右滚动，松开即可上下滚动"
+text = "双击单元格进行编辑
+
+按住 Alt 键进行左右滚动，松开即可上下滚动"
 
 [node name="save_as_dialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
@@ -158,6 +179,7 @@ title = "Open a File"
 size = Vector2i(295, 161)
 ok_button_text = "打开"
 file_mode = 0
+access = 2
 filters = PackedStringArray("*.csv; CSV")
 
 [connection signal="menu_pressed" from="VBoxContainer/menu_list" to="." method="_on_menu_list_menu_pressed"]
@@ -165,6 +187,7 @@ filters = PackedStringArray("*.csv; CSV")
 [connection signal="popup_edit_box_size_changed" from="VBoxContainer/GridContainer/table_edit" to="." method="_on_table_edit_popup_edit_box_size_changed"]
 [connection signal="scroll_changed" from="VBoxContainer/GridContainer/table_edit" to="." method="_on_table_edit_scroll_changed"]
 [connection signal="text_submitted" from="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/scroll_pos" to="." method="_on_scroll_pos_text_submitted"]
+[connection signal="toggled" from="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/Control/CheckBox" to="." method="_on_check_box_toggled"]
 [connection signal="gui_input" from="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/file_path_label" to="." method="_on_file_path_label_gui_input"]
 [connection signal="exported" from="export_preview_window" to="." method="_on_export_preview_window_exported"]
 [connection signal="confirmed" from="confirm_dialog" to="." method="_new_file"]

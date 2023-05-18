@@ -13,6 +13,7 @@ extends Control
 signal popup_hide(text: String)
 signal box_size_changed(box_size: Vector2)
 
+
 @export
 var text : String = "" :
 	set(v):
@@ -23,13 +24,9 @@ var text : String = "" :
 @export
 var showed : bool = true:
 	set(v):
-		showed = v
-		if not is_inside_tree(): await ready
-		_edit_box.visible = showed
-	get:
-		if _edit_box:
-			return _edit_box.visible
-		return true
+		if v != self.visible:
+			showed = v
+			self.visible = v
 @export
 var box_size: Vector2 :
 	set(v):
@@ -66,7 +63,6 @@ func get_text() -> String:
 #   内置
 #============================================================
 func _ready():
-	_edit_box.visible = false
 	_edit_box.position = Vector2(0,0)
 	
 	_scale_rect.gui_input.connect(func(event):
@@ -82,7 +78,6 @@ func _ready():
 					_pressed_size = _edit_box.size
 					_pressed_pos = get_global_mouse_position()
 	)
-	
 
 
 #============================================================
@@ -115,6 +110,13 @@ func popup(rect: Rect2 = Rect2()):
 	, Object.CONNECT_ONE_SHOT)
 
 
-
 func _on_edit_box_resized():
+	if _edit_box == null: await ready
 	self.box_size_changed.emit(_edit_box.size)
+
+
+func _on_edit_box_gui_input(event):
+	if event is InputEventKey:
+		if event.pressed:
+			if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
+				pass

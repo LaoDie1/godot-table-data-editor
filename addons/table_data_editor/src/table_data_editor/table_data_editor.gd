@@ -242,11 +242,17 @@ func load_file_data(file_data: TableDataEditor_FileData):
 		
 		_table_edit.get_edit_dialog().box_size = file_data.edit_dialog_size
 		_table_edit.update_cell_list()
-		_table_edit.get_edit_dialog().showed = false
 	).call_deferred()
 	
+	# 其他
 	_saved = true
 	_saved_path = ""
+	
+	_undo_redo.clear_history()
+	_menu_list.set_menu_disabled_by_path("/Edit/Undo", true)
+	_menu_list.set_menu_disabled_by_path("/Edit/Redo", true)
+	
+	_table_edit.get_edit_dialog().showed = false
 
 
 ## 保存数据到这个路径中
@@ -293,7 +299,7 @@ func show_save_dialog(default_file_name: String = ""):
 
 ## 导入文件
 func import_file(path: String):
-	assert(path.get_extension() in ["csv"], "错误的文件型")
+	assert(path.get_extension() in ["csv"], "错误的文件类型")
 	
 	# 加载 csv数据 到 数据集 中
 	var data_set = TableDataEditor_TableDataSet.new()
@@ -309,6 +315,9 @@ func import_file(path: String):
 	var tmp_file_data = file_data.load_file("")
 	tmp_file_data.data_set = data_set
 	load_file_data(tmp_file_data)
+	
+	cache_data.dialog_path = path
+	cache_data.save_data()
 
 
 
@@ -431,3 +440,5 @@ func _on_table_edit_popup_edit_box_size_changed(box_size):
 	file_data.edit_dialog_size = box_size
 
 
+func _on_check_box_toggled(button_pressed):
+	_table_edit.double_click_edit = button_pressed

@@ -14,7 +14,6 @@ box_size = Vector2(200, 120)
 
 [node name="edit_box" type="TextEdit" parent="."]
 unique_name_in_owner = true
-visible = false
 custom_minimum_size = Vector2(100, 30)
 layout_mode = 1
 anchors_preset = 15
@@ -39,4 +38,5 @@ offset_right = 7.79999
 offset_bottom = 7.56
 mouse_default_cursor_shape = 12
 
+[connection signal="gui_input" from="edit_box" to="." method="_on_edit_box_gui_input"]
 [connection signal="resized" from="edit_box" to="." method="_on_edit_box_resized"]
