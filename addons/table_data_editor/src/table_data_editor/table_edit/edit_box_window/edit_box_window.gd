@@ -12,6 +12,7 @@ extends Control
 
 signal popup_hide(text: String)
 signal box_size_changed(box_size: Vector2)
+signal input_switch_char(character: int)
 
 
 @export
@@ -118,5 +119,12 @@ func _on_edit_box_resized():
 func _on_edit_box_gui_input(event):
 	if event is InputEventKey:
 		if event.pressed:
-			if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
-				pass
+			if not Input.is_key_pressed(KEY_CTRL):
+				if event.keycode in [KEY_ENTER, KEY_KP_ENTER]:
+					self.input_switch_char.emit(KEY_ENTER)
+					get_tree().root.set_input_as_handled()
+					
+				elif event.keycode in [KEY_TAB]:
+					self.input_switch_char.emit(KEY_TAB)
+					get_tree().root.set_input_as_handled()
+

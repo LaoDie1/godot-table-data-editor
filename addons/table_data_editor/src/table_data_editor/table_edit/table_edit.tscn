@@ -110,9 +110,10 @@ autostart = true
 
 [node name="popup_edit_box" parent="." instance=ExtResource("6_mt1mb")]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
-showed = false
 
 [connection signal="grid_cell_size_changed" from="serial_number_container/Control3/grid_container/table_container" to="." method="_on_table_container_grid_cell_size_changed"]
 [connection signal="newly_added_cell" from="serial_number_container/Control3/grid_container/table_container" to="." method="_newly_added_cell"]
 [connection signal="box_size_changed" from="popup_edit_box" to="." method="_on_popup_edit_box_box_size_changed"]
+[connection signal="input_switch_char" from="popup_edit_box" to="." method="_on_popup_edit_box_input_switch_char"]

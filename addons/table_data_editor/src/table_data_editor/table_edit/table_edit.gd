@@ -341,6 +341,21 @@ func edit_cell(cell_coords: Vector2i):
 	self.ready_edit_cell.emit(cell)
 
 
+func switch_edit(coords: Vector2i, direction : Vector2i):
+	if _selected_cell:
+		var next_coords = coords + direction
+		if next_coords.x > 0 and next_coords.y > 0:
+			_popup_edit_box.showed = false
+			_popup_edit_box.showed = true
+			
+			var top_left = get_scroll_top_left()
+			scroll_to(top_left + direction)
+			
+			await Engine.get_main_loop().process_frame
+			edit_cell.call_deferred(next_coords)
+
+
+
 #============================================================
 #  连接信号
 #============================================================
@@ -437,3 +452,15 @@ func _on_table_container_grid_cell_size_changed(grid_size):
 
 func _on_popup_edit_box_box_size_changed(box_size):
 	self.popup_edit_box_size_changed.emit(box_size)
+
+
+func _on_popup_edit_box_input_switch_char(character):
+	match character:
+		KEY_TAB:
+			var coords = get_cell_coords(_selected_cell)
+			switch_edit(coords, Vector2i.LEFT if Input.is_key_pressed(KEY_SHIFT) else Vector2i.RIGHT)
+		
+		KEY_ENTER:
+			var coords = get_cell_coords(_selected_cell)
+			switch_edit(coords, Vector2i.UP if Input.is_key_pressed(KEY_SHIFT) else Vector2i.DOWN)
+		
