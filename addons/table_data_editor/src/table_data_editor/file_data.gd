@@ -23,13 +23,13 @@ var data_set = TableDataEditor_TableDataSet.new():
 		data_set = TableDataEditor_TableDataSet.new(v) \
 			if v is Dictionary \
 			else v
-# 列宽数据
+## 列宽数据
 var column_width = {}
-# 行高数据
+## 行高数据
 var row_height = {}
-# 编辑框大小
+## 编辑框大小
 var edit_dialog_size : Vector2 = Vector2(100, 50)
-# 文件路径
+## 文件路径
 var path : String = ""
 
 
@@ -40,7 +40,7 @@ func is_empty() -> bool:
 	return origin_data.is_empty()
 
 func is_new_file() -> bool:
-	return path == ""
+	return path.is_empty()
 
 
 #============================================================
@@ -67,8 +67,14 @@ func _init(origin_data: Dictionary):
 static func load_file(path: String) -> TableDataEditor_FileData:
 	if FileAccess.file_exists(path):
 		var data = TableDataUtil.Files.load_file(path)
-		if data == null:
+		if not data is Dictionary: 
+			var reader = FileAccess.open(path, FileAccess.READ)
+			if reader:
+				data = reader.get_var()
+		
+		if not data is Dictionary:
 			data = {}
+		
 		var file_data = TableDataEditor_FileData.new(data)
 		file_data.path = path
 		return file_data

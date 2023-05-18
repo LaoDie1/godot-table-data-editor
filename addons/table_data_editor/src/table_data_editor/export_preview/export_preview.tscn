@@ -1,10 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://dq4euj3vbhcd3"]
+[gd_scene load_steps=6 format=3 uid="uid://dq4euj3vbhcd3"]
 
 [ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/export_preview/export_preview.gd" id="1_iqbuq"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_drl5b"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rlr7g"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2ocp7"]
 
@@ -71,6 +69,19 @@ theme_override_constants/separation = 16
 unique_name_in_owner = true
 layout_mode = 2
 
+[node name="csv" type="HBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/csv"]
+layout_mode = 2
+text = "delim"
+
+[node name="LineEdit" type="LineEdit" parent="MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/csv"]
+layout_mode = 2
+text = ","
+placeholder_text = "表格间的分隔符，默认为 ,"
+
 [node name="head_as_key_panel" type="HBoxContainer" parent="MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param"]
 unique_name_in_owner = true
 visible = false
@@ -89,6 +100,13 @@ min_value = 1.0
 max_value = 10000.0
 value = 1.0
 
+[node name="compact" type="CheckBox" parent="MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/head_as_key_panel"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+tooltip_text = "紧凑的格式导出，这样JSON会占用空间会最小。数据量不是非常大可以不用勾选"
+text = "compact"
+
 [node name="Label" type="Label" parent="MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer"]
 modulate = Color(1, 1, 1, 0.462745)
 layout_mode = 2
@@ -106,18 +124,6 @@ layout_mode = 2
 [node name="Control" type="Control" parent="MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="compact" type="CheckBox" parent="MarginContainer/VBoxContainer/HBoxContainer"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-tooltip_text = "紧凑的格式导出，这样JSON会占用空间会最小。数据量不是非常大可以不用勾选"
-text = "compact"
-
-[node name="Control2" type="VSeparator" parent="MarginContainer/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 32
-theme_override_styles/separator = SubResource("StyleBoxEmpty_rlr7g")
 
 [node name="export" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(80, 32)
@@ -143,6 +149,7 @@ size_flags_horizontal = 3
 [node name="save_dialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
 size = Vector2i(343, 159)
+access = 2
 filters = PackedStringArray("*.json; JSON", "*.csv; CSV")
 
 [connection signal="value_changed" from="MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/head_as_key_panel/head_line_box" to="." method="_on_head_line_box_value_changed"]

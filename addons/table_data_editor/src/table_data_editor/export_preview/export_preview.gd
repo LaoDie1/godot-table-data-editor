@@ -5,11 +5,7 @@
 # - datetime: 2022-11-27 17:45:09
 # - version: 4.0
 #============================================================
-#============================================================
-#    Export Preview
-#============================================================
-#============================================================
-# 导出预览
+# 预览导出
 @tool
 class_name ExportPreview
 extends MarginContainer
@@ -32,7 +28,7 @@ enum ExportMode {
 	
 }
 
-const EXAMPLE_COUNT = 3
+const EXAMPLE_COUNT = 5
 
 
 @export var table_data_editor : TableDataEditor
@@ -58,7 +54,7 @@ var button_group : ButtonGroup
 #  SetGet
 #============================================================
 ## 将有值的行的数据进行保存
-func get_data_by_row() -> Array:
+func get_data_by_head_row() -> Array:
 	var result : Array = []
 	var head_row_number : int = _head_line_box.value
 	var data_set = table_data_editor.get_table_edit().get_data_set()
@@ -83,7 +79,9 @@ func get_csv_data() -> Array[String]:
 	for row in range(1, data_set.get_max_column() + 1):
 		var line : Array = []
 		for column in range(1, max_column + 1):
-			line.append(data_set.get_value(Vector2i(column, row)))
+			line.append(
+				JSON.stringify(data_set.get_value(Vector2i(column, row)))
+			)
 		csv_list.append(",".join(line))
 	
 	return csv_list
@@ -99,11 +97,11 @@ func _ready() -> void:
 		for child in _selected_item_param.get_children():
 			child.visible = false
 		match button.name:
-			"json": _head_as_key_panel.visible = true
+			"json": 
+				_head_as_key_panel.visible = true
 		
 		update_text_box_content()
 	)
-
 
 
 #============================================================
@@ -113,12 +111,12 @@ func _data_format(data) -> String:
 	return JSON.stringify(data, "" if _compact.button_pressed else "\t")
 
 
-func _update_by_row():
-	var data_list = get_data_by_row()
+func _update_by_head_row():
+	var data_list = get_data_by_head_row()
 	var examples = []
 	for i in range(min(data_list.size(), EXAMPLE_COUNT)):
 		examples.append(data_list[i])
-	_text_box.text = JSON.stringify(data_list, "\t")
+	_text_box.text = JSON.stringify(examples, "\t")
 
 
 func _update_by_csv():
@@ -126,7 +124,7 @@ func _update_by_csv():
 	var examples = []
 	for i in range(min(data_list.size(), EXAMPLE_COUNT)):
 		examples.append(data_list[i])
-	_text_box.text = JSON.stringify(data_list, "\t")
+	_text_box.text = "\n".join(examples)
 
 
 # 更新文本框的内容
@@ -134,7 +132,7 @@ func update_text_box_content():
 	_text_box.text = ""
 	match button_group.get_pressed_button().name:
 		"json":
-			_update_by_row()
+			_update_by_head_row()
 		"csv":
 			_update_by_csv()
 
@@ -149,8 +147,6 @@ func _on_head_line_box_value_changed(value: float) -> void:
 func _on_export_pressed() -> void:
 	_save_dialog.current_file = "new_file." + str(button_group.get_pressed_button().name)
 	_save_dialog.popup_centered_ratio(0.5)
-	
-#	_save_dialog.popup_centered( Vector2i(600, 400) )
 
 
 func _on_save_dialog_file_selected(path: String) -> void:
@@ -160,12 +156,12 @@ func _on_save_dialog_file_selected(path: String) -> void:
 			data = "\n".join(get_csv_data())
 			TableDataUtil.Files.save_as_string( path, data )
 		"json":
-			data = get_data_by_row()
+			data = get_data_by_head_row()
 			TableDataUtil.Files.save_as_string( path, _data_format(data) )
 	
 	_save_dialog.current_path = path
 	
-	print(" >>> 保存json数据：", path)
+	print("[ ExportPreview ] 保存数据：", path)
 	self.exported.emit(path, data)
 
 

@@ -65,6 +65,11 @@ class Files:
 			else data
 		)
 	
+	static func get_absolute_path(path: String) -> String:
+		var reader = FileAccess.open(path, FileAccess.READ)
+		if reader:
+			return reader.get_path_absolute()
+		return ""
 	
 
 

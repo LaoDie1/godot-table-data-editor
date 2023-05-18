@@ -6,12 +6,12 @@
 # - version: 4.0
 #============================================================
 @tool
-class_name EditPopupBox
+class_name PopupEditBox
 extends Control
 
 
 signal popup_hide(text: String)
-
+signal box_size_changed(box_size: Vector2)
 
 @export
 var text : String = "" :
@@ -35,7 +35,8 @@ var box_size: Vector2 :
 	set(v):
 		box_size = v
 		if not is_inside_tree(): await ready
-		_edit_box.size = box_size
+		if _edit_box.size != box_size:
+			_edit_box.size = box_size
 	get:
 		if _edit_box:
 			return _edit_box.size
@@ -101,7 +102,7 @@ func popup(rect: Rect2 = Rect2()):
 	_edit_box.set_caret_column( _edit_box.text.length() )
 	self.showed = true
 	
-#	print("[ EditPopupBox ] 弹出窗口")
+#	print("[ PopupEditBox ] 弹出窗口")
 	
 	# 取消焦点时隐藏
 	var t = _edit_box.text
@@ -110,6 +111,10 @@ func popup(rect: Rect2 = Rect2()):
 		if t != _edit_box.text:
 			self.popup_hide.emit(_edit_box.text)
 		_edit_box.visible = false
-#		print("[ EditPopupBox ] 弹窗隐藏")
+#		print("[ PopupEditBox ] 弹窗隐藏")
 	, Object.CONNECT_ONE_SHOT)
 
+
+
+func _on_edit_box_resized():
+	self.box_size_changed.emit(_edit_box.size)

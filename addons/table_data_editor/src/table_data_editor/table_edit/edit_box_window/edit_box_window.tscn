@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=2 format=3 uid="uid://4xts0ha85fja"]
 
 [ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/table_edit/edit_box_window/edit_box_window.gd" id="1_qj0ea"]
 
-[node name="edit_box_window" type="Control"]
+[node name="popup_edit_box" type="Control"]
 layout_mode = 3
 anchors_preset = 0
 size_flags_horizontal = 0
@@ -38,3 +38,5 @@ offset_top = -0.440002
 offset_right = 7.79999
 offset_bottom = 7.56
 mouse_default_cursor_shape = 12
+
+[connection signal="resized" from="edit_box" to="." method="_on_edit_box_resized"]

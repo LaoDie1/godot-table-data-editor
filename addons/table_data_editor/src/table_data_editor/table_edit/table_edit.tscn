@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/table_edit/serial_number_container.gd" id="2_irx05"]
 [ext_resource type="PackedScene" path="res://addons/table_data_editor/src/table_data_editor/table_edit/cell/serial_number_cell/serial_number_cell.tscn" id="3_xe81h"]
 [ext_resource type="PackedScene" uid="uid://d02f0rqt6qnpv" path="res://addons/table_data_editor/src/table_data_editor/table_edit/table_container/table_container.tscn" id="4_sm235"]
-[ext_resource type="PackedScene" path="res://addons/table_data_editor/src/table_data_editor/table_edit/edit_box_window/edit_box_window.tscn" id="6_mt1mb"]
+[ext_resource type="PackedScene" uid="uid://4xts0ha85fja" path="res://addons/table_data_editor/src/table_data_editor/table_edit/edit_box_window/edit_box_window.tscn" id="6_mt1mb"]
 
 [node name="table_edit" type="MarginContainer"]
 anchors_preset = 15
@@ -108,9 +108,10 @@ wait_time = 0.02
 one_shot = true
 autostart = true
 
-[node name="edit_popup_box" parent="." instance=ExtResource("6_mt1mb")]
+[node name="popup_edit_box" parent="." instance=ExtResource("6_mt1mb")]
 unique_name_in_owner = true
 layout_mode = 2
 
 [connection signal="grid_cell_size_changed" from="serial_number_container/Control3/grid_container/table_container" to="." method="_on_table_container_grid_cell_size_changed"]
 [connection signal="newly_added_cell" from="serial_number_container/Control3/grid_container/table_container" to="." method="_newly_added_cell"]
+[connection signal="box_size_changed" from="popup_edit_box" to="." method="_on_popup_edit_box_box_size_changed"]

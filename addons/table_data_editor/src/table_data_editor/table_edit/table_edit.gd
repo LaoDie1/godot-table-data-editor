@@ -29,12 +29,14 @@ signal scroll_changed(coords: Vector2i)
 signal row_height_changed(value: int)
 ## 列宽发生改变
 signal column_width_changed(value: int)
+## 弹窗编辑器表格大小发生改变
+signal popup_edit_box_size_changed(box_size: Vector2)
 
 
 var __init_node = InjectUtil.auto_inject(self, "_", true)
 
 var _table_container : TableContainer
-var _edit_popup_box : EditPopupBox
+var _popup_edit_box : PopupEditBox
 var _v_scroll_bar : VScrollBar
 var _h_scroll_bar : HScrollBar
 var _update_grid_data_timer : Timer
@@ -137,8 +139,8 @@ func get_row_height_data() -> Dictionary:
 	return row_to_height_map
 
 ## 获取编辑弹窗
-func get_edit_dialog() -> EditPopupBox:
-	return _edit_popup_box
+func get_edit_dialog() -> PopupEditBox:
+	return _popup_edit_box
 
 
 
@@ -158,7 +160,7 @@ func _ready() -> void:
 	)
 	
 	# 编辑表格窗
-	_edit_popup_box.popup_hide.connect(func(value):
+	_popup_edit_box.popup_hide.connect(func(value):
 		# 弹窗消失后才允许发送取消选中的信号
 		_enabled_emit_deselected_signal = true
 		# 更新选中的 cell
@@ -291,8 +293,8 @@ func force_update_cell_list():
 	if _latest_top_left != top_left:
 		_latest_top_left = top_left
 		self.scroll_changed.emit( _latest_top_left )
-		_edit_popup_box.showed = false
-		_edit_popup_box.get_edit_box().visible = false
+		_popup_edit_box.showed = false
+		_popup_edit_box.get_edit_box().visible = false
 		_serial_number_container.update_serial_number(top_left)
 
 
@@ -344,8 +346,8 @@ func _newly_added_cell(coords: Vector2i, new_cell: InputCell):
 	# 选中单元格
 	new_cell.focus_entered.connect(func():
 		_selected_cell = new_cell
-		if _edit_popup_box.showed:
-			_edit_popup_box.showed = false
+		if _popup_edit_box.showed:
+			_popup_edit_box.showed = false
 			if _selected_cell:
 				# 取消上次选中的单元格
 				self.deselected_cell.emit(_selected_cell)
@@ -353,7 +355,7 @@ func _newly_added_cell(coords: Vector2i, new_cell: InputCell):
 		
 		# 当前 cell
 		self.selected_cell.emit(new_cell) 
-		_edit_popup_box.showed = false
+		_popup_edit_box.showed = false
 	)
 	
 	# 取消选中单元格
@@ -372,8 +374,8 @@ func _newly_added_cell(coords: Vector2i, new_cell: InputCell):
 		_selected_cell = new_cell
 		# 弹窗编辑
 		var cell_coords = get_cell_coords(new_cell) # 这个表格的位置
-		_edit_popup_box.text = data_set.get_value(cell_coords)
-		_edit_popup_box.popup(Rect2(new_cell.global_position, Vector2(0,0)))
+		_popup_edit_box.text = data_set.get_value(cell_coords)
+		_popup_edit_box.popup(Rect2(new_cell.global_position, Vector2(0,0)))
 		
 	)
 	
@@ -403,9 +405,9 @@ func _newly_added_cell(coords: Vector2i, new_cell: InputCell):
 		
 	)
 
-
 func _on_table_container_grid_cell_size_changed(grid_size):
 	# 更新序号
 	_serial_number_container.update_grid_cell_count(grid_size)
 
-
+func _on_popup_edit_box_box_size_changed(box_size):
+	self.popup_edit_box_size_changed.emit(box_size)

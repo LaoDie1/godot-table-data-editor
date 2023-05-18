@@ -43,6 +43,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+row_to_height_map = {}
 
 [node name="PanelContainer" type="PanelContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -85,7 +86,8 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = "res://addons/table_data_editor/test.gdata"
+tooltip_text = "双击打开所在文件目录"
+mouse_filter = 0
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
@@ -159,8 +161,10 @@ text = "按住 Alt 键进行左右滚动，松开即可上下滚动"
 
 [connection signal="menu_pressed" from="VBoxContainer/menu_list" to="." method="_on_menu_list_menu_pressed"]
 [connection signal="cell_value_changed" from="VBoxContainer/GridContainer/table_edit" to="." method="_on_table_edit_cell_value_changed"]
+[connection signal="popup_edit_box_size_changed" from="VBoxContainer/GridContainer/table_edit" to="." method="_on_table_edit_popup_edit_box_size_changed"]
 [connection signal="scroll_changed" from="VBoxContainer/GridContainer/table_edit" to="." method="_on_table_edit_scroll_changed"]
 [connection signal="text_submitted" from="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/scroll_pos" to="." method="_on_scroll_pos_text_submitted"]
+[connection signal="gui_input" from="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/file_path_label" to="." method="_on_file_path_label_gui_input"]
 [connection signal="exported" from="export_preview_window/export_preview" to="." method="_on_export_preview_exported"]
 [connection signal="file_selected" from="save_as_dialog" to="." method="_on_save_as_dialog_file_selected"]
 [connection signal="file_selected" from="open_file_dialog" to="." method="_on_open_file_dialog_file_selected"]

@@ -34,6 +34,7 @@ const MENU_ITEM : Dictionary = {
 		"New", "Open", {"Recently Opened": ["/"]}, "-",
 		"Save", "Save As...", "-",
 		"Export...",
+		"Import...",
 	],
 	"Edit": ["Undo", "Redo"],
 	"Help": ["Help"],
@@ -237,8 +238,8 @@ func load_file_data(path: String):
 		_table_edit.column_to_width_map = file_data.column_width
 	
 	_table_edit.get_edit_dialog().box_size = file_data.edit_dialog_size
-	_table_edit.get_edit_dialog().showed = false
 	_table_edit.update_cell_list()
+	_table_edit.get_edit_dialog().showed = false
 	
 	_saved_path = path
 	_saved = true
@@ -258,7 +259,7 @@ func save_data_to(path: String):
 		
 		self.created_file.emit(path)
 		
-		print("[ TableDataEditor ] 保存成功")
+		print("[ TableDataEditor ] 保存成功 ", Time.get_datetime_string_from_system())
 		
 	else:
 		printerr("[ TableDataEditor ] 保存失败")
@@ -355,6 +356,9 @@ func _on_menu_list_menu_pressed(idx, menu_path: String):
 			_export_preview_window.popup_centered_ratio(0.5)
 			_export_preview.update_text_box_content()
 		
+		"/File/Import...":
+			pass
+		
 		"/Edit/Undo":
 			_undo_redo.undo()
 			_menu_list.set_menu_disabled_by_path("/Edit/Undo", not _undo_redo.has_undo())
@@ -393,4 +397,16 @@ func _on_export_preview_exported(path, data) -> void:
 func _on_open_file_dialog_file_selected(path: String):
 	cache_data.dialog_path = path.get_base_dir()
 	load_file_data(path)
+
+
+func _on_file_path_label_gui_input(event):
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.double_click:
+			if _saved_path != "" and DirAccess.dir_exists_absolute(_saved_path.get_base_dir()):
+				var path = TableDataUtil.Files.get_absolute_path(_saved_path)
+				OS.shell_open(path.get_base_dir())
+
+
+func _on_table_edit_popup_edit_box_size_changed(box_size):
+	file_data.edit_dialog_size = box_size
 
