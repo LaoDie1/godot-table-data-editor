@@ -133,8 +133,11 @@ func _ready() -> void:
 	file_data = TableDataEditor_FileData.new({})
 	cache_data = TableDataEditor_CacheData.instance()
 	
+	_export_preview_window.table_data_editor = self
+	
 	(func():
 		_saved_path = ""
+		
 		
 		_init_dialog()
 		_init_menu()

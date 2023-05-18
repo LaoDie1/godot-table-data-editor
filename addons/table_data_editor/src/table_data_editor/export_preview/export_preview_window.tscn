@@ -153,11 +153,11 @@ size_flags_horizontal = 3
 
 [node name="save_dialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
-size = Vector2i(343, 159)
+size = Vector2i(375, 161)
 access = 2
 filters = PackedStringArray("*.json; JSON", "*.csv; CSV")
 
 [connection signal="value_changed" from="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/head_as_key_panel/head_line_box" to="export_preview" method="_on_head_line_box_value_changed" flags=18]
 [connection signal="pressed" from="export_preview/MarginContainer/VBoxContainer/HBoxContainer/export" to="." method="_on_export_pressed"]
 [connection signal="pressed" from="export_preview/MarginContainer/VBoxContainer/HBoxContainer/cancel" to="." method="_on_cancel_pressed"]
-[connection signal="file_selected" from="save_dialog" to="export_preview" method="_on_save_dialog_file_selected" flags=18]
+[connection signal="file_selected" from="save_dialog" to="." method="_on_save_dialog_file_selected"]
