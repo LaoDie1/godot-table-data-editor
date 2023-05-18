@@ -80,7 +80,7 @@ func _selected_method(method_names : Array):
 		arguments = arguments.strip_edges().trim_suffix(",")
 		
 		# 类型
-		var return_type : String = ScriptUtil.get_type_name(method_type)
+		var return_type : String = ScriptCommentMenu_ScriptUtil.get_type_name(method_type)
 		var return_value : String = ""
 		if return_type == "null":
 			return_type = ""
@@ -90,7 +90,7 @@ func _selected_method(method_names : Array):
 		
 		code += FORMAT.format({
 			"method_name": method_name,
-			"method_type": ScriptUtil.get_type_name(method_type),
+			"method_type": ScriptCommentMenu_ScriptUtil.get_type_name(method_type),
 			"return_type": return_type,
 			"return_value": "",
 			"arguments": arguments,
