@@ -58,10 +58,6 @@ static func instance() -> TableDataEditor_CacheData:
 		if data is Dictionary:
 			TableDataUtil.Classes.set_property_by_dict(object, data)
 		
-		Log.debug()
-		print(object)
-		print(data)
-		
 		script.set_meta(KEY, object)
 		return object
 

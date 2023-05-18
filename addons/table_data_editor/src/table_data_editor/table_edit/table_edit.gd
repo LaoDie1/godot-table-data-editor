@@ -41,11 +41,6 @@ var _update_grid_data_timer : Timer
 var _serial_number_container : SerialNumberContainer
 
 
-var __listene_open_file = SingletonDataUtil.listene_load_data(func(data):
-	pass
-	print_debug("打开文件：", data)
-)
-
 # 表格中的数据 data[row][column] = data 
 var grid_data := {}:
 	set(v):

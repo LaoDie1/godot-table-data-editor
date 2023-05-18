@@ -158,10 +158,10 @@ func _on_save_dialog_file_selected(path: String) -> void:
 	match button_group.get_pressed_button().name:
 		"csv":
 			data = "\n".join(get_csv_data())
-			TableEditUtil.save_as_string( path, data )
+			TableDataUtil.Files.save_as_string( path, data )
 		"json":
 			data = get_data_by_row()
-			TableEditUtil.save_as_string( path, _data_format(data) )
+			TableDataUtil.Files.save_as_string( path, _data_format(data) )
 	
 	_save_dialog.current_path = path
 	

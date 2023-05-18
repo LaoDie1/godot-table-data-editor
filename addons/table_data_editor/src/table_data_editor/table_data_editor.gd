@@ -53,11 +53,6 @@ const MENU_SHORTCUT : Dictionary = {
 signal created_file(path: String)
 
 
-var __init_data = SingletonDataUtil.register(self, func():
-	pass
-	
-)
-
 # 保存到的文件路径
 var _saved_path : String = "" :
 	set(v):
