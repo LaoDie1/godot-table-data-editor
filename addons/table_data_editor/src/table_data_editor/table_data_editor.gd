@@ -28,7 +28,10 @@ const MENU_ITEM : Dictionary = {
 		"Export...",
 		"Import...",
 	],
-	"Edit": ["Undo", "Redo"],
+	"Edit": [
+		"Undo", "Redo", "-",
+		"Double click edit"
+	],
 	"Help": ["Help"],
 }
 ## 菜单快捷键
@@ -42,7 +45,9 @@ const MENU_SHORTCUT : Dictionary = {
 	"/Edit/Undo": {"keycode": KEY_Z, "ctrl": true},
 	"/Edit/Redo": {"keycode": KEY_Z, "ctrl": true, "shift": true},
 }
-
+const MENU_CHECKABLE : Array = [
+	"/Edit/Double click edit",
+]
 
 signal created_file(path: String)
 
@@ -171,6 +176,10 @@ func _init_menu():
 	
 	_menu_list.set_menu_disabled_by_path("/Edit/Undo", true)
 	_menu_list.set_menu_disabled_by_path("/Edit/Redo", true)
+	
+	for menu_path in MENU_CHECKABLE:
+		_menu_list.set_menu_as_checkable(menu_path, true)
+	_menu_list.set_menu_check_by_path("/Edit/Double click edit", true)
 
 
 # 初始化弹窗
@@ -401,6 +410,11 @@ func _on_menu_list_menu_pressed(idx, menu_path: StringName):
 			_menu_list.set_menu_disabled_by_path("/Edit/Redo", not _undo_redo.has_redo())
 			_menu_list.set_menu_disabled_by_path("/Edit/Undo", false)
 		
+		"/Edit/Double click edit":
+			var status = _menu_list.get_menu_check_by_path("/Edit/Double click edit")
+			_menu_list.set_menu_check_by_path("/Edit/Double click edit", not status)
+			_table_edit.double_click_edit = not status
+		
 		"/Help/Help":
 			_tooltip_dialog.popup_centered()
 		
@@ -442,6 +456,3 @@ func _on_file_path_label_gui_input(event):
 func _on_table_edit_popup_edit_box_size_changed(box_size):
 	file_data.edit_dialog_size = box_size
 
-
-func _on_check_box_toggled(button_pressed):
-	_table_edit.double_click_edit = button_pressed

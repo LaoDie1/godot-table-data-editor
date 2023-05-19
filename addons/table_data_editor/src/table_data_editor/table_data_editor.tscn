@@ -83,11 +83,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 1
 
-[node name="CheckBox" type="CheckBox" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/Control"]
-layout_mode = 2
-button_pressed = true
-text = "Double click edit"
-
 [node name="MarginContainer2" type="MarginContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 2
@@ -106,7 +101,6 @@ size_flags_horizontal = 3
 tooltip_text = "双击打开所在文件目录"
 focus_mode = 1
 mouse_filter = 0
-text = "res://addons/table_data_editor/test.gdata"
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
@@ -188,7 +182,6 @@ filters = PackedStringArray("*.csv; CSV")
 [connection signal="popup_edit_box_size_changed" from="VBoxContainer/GridContainer/table_edit" to="." method="_on_table_edit_popup_edit_box_size_changed"]
 [connection signal="scroll_changed" from="VBoxContainer/GridContainer/table_edit" to="." method="_on_table_edit_scroll_changed"]
 [connection signal="text_submitted" from="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/scroll_pos" to="." method="_on_scroll_pos_text_submitted"]
-[connection signal="toggled" from="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/Control/CheckBox" to="." method="_on_check_box_toggled"]
 [connection signal="gui_input" from="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/file_path_label" to="." method="_on_file_path_label_gui_input"]
 [connection signal="exported" from="export_preview_window" to="." method="_on_export_preview_window_exported"]
 [connection signal="confirmed" from="confirm_dialog" to="." method="_new_file"]
