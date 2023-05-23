@@ -153,6 +153,13 @@ func get_column_width_data() -> Dictionary:
 func get_row_height_data() -> Dictionary:
 	return row_to_height_map
 
+## 获取单元格行列大小数量
+func get_column_row_size() -> Vector2i:
+	return _table_container.get_grid_row_column_count_size()
+
+## 获取单元格当前整个矩形数据的位置
+func get_current_rect() -> Rect2i:
+	return Rect2i(get_scroll_top_left(), get_column_row_size())
 
 
 #============================================================
@@ -185,9 +192,6 @@ func _ready() -> void:
 	
 	# 必须要等空闲时间时调用，否则 _table_container 中的节点没有加载完成，则看不到节点的大小
 	update_serial_num.call_deferred(Vector2i(0, 0))
-#	await Engine.get_main_loop().process_frame.connect(func():
-#		update_serial_num(Vector2i(0, 0))
-#	, Object.CONNECT_ONE_SHOT)
 	self.default_tile_size = _table_container.get_tile_size()
 	
 	# 切换窗口时取消 alt 
@@ -330,9 +334,8 @@ func scroll_to(left_top: Vector2i):
 func edit_cell(cell_coords: Vector2i):
 	_enabled_emit_deselected_signal = false
 	
-	var cell = get_cell_node(cell_coords)
-	
 	# 设置选中的 cell
+	var cell = get_cell_node(cell_coords)
 	_selected_cell = cell
 	
 	# 弹窗
@@ -341,18 +344,26 @@ func edit_cell(cell_coords: Vector2i):
 	self.ready_edit_cell.emit(cell)
 
 
-func switch_edit(coords: Vector2i, direction : Vector2i):
+## 切换到下一个位置进行编辑。表格坐标是从 Vector2i(1, 1) 开始的，不是 Vector2i(0, 0)
+func edit_to_next_cell(coords: Vector2i, direction : Vector2i):
 	if _selected_cell:
 		var next_coords = coords + direction
-		if next_coords.x > 0 and next_coords.y > 0:
-			_popup_edit_box.showed = false
-			_popup_edit_box.showed = true
-			
+		next_coords.x = max(1, next_coords.x)
+		next_coords.y = max(1, next_coords.y)
+		
+		_popup_edit_box.showed = false
+		_popup_edit_box.showed = true
+		
+		# 如果所在的单元格超出当前视图内的单元格，则进行滚动
+		var rect = get_current_rect()
+		rect.size -= Vector2i.ONE
+		if not rect.has_point(next_coords):
 			var top_left = get_scroll_top_left()
 			scroll_to(top_left + direction)
-			
-			await Engine.get_main_loop().create_timer(0.1).timeout
-			edit_cell.call_deferred(next_coords)
+		
+		# 切换到下一个网格的位置编辑网格
+		await Engine.get_main_loop().create_timer(0.1).timeout
+		edit_cell.call_deferred(next_coords)
 
 
 
@@ -458,9 +469,9 @@ func _on_popup_edit_box_input_switch_char(character):
 	match character:
 		KEY_TAB:
 			var coords = get_cell_coords(_selected_cell)
-			switch_edit(coords, Vector2i.LEFT if Input.is_key_pressed(KEY_SHIFT) else Vector2i.RIGHT)
+			edit_to_next_cell(coords, Vector2i.LEFT if Input.is_key_pressed(KEY_SHIFT) else Vector2i.RIGHT)
 		
 		KEY_ENTER:
 			var coords = get_cell_coords(_selected_cell)
-			switch_edit(coords, Vector2i.UP if Input.is_key_pressed(KEY_SHIFT) else Vector2i.DOWN)
+			edit_to_next_cell(coords, Vector2i.UP if Input.is_key_pressed(KEY_SHIFT) else Vector2i.DOWN)
 		

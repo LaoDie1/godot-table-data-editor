@@ -119,8 +119,8 @@ func _ready() -> void:
 	# 更新单元格数量
 	_update_row_column_amount_timer.timeout.connect(func():
 		var tmp_cell_amount = _grid_cell_count_size
-		_grid_cell_count_size.x = int(get_viewport_rect().size.x / _tile_size.x) + 1
-		_grid_cell_count_size.y = int(get_viewport_rect().size.y / _tile_size.y) + 1
+		_grid_cell_count_size.x = int(self.size.x / _tile_size.x) + 1
+		_grid_cell_count_size.y = int(self.size.y / _tile_size.y) + 1
 		
 		if tmp_cell_amount != _grid_cell_count_size:
 			print("[ TableContainer ] 单元格小：", _grid_cell_count_size)

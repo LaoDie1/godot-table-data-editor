@@ -10,8 +10,7 @@ extends GridContainer
 
 
 ## 显示序号的单元格场景
-@export
-var serial_number_cell : PackedScene
+@export var serial_number_cell : PackedScene
 
 
 var __init_node = InjectUtil.auto_inject(self, "_", true)
