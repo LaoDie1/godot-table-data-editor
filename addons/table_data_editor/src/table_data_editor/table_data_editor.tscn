@@ -1,9 +1,34 @@
-[gd_scene load_steps=5 format=3 uid="uid://68vjwfxquvlf"]
+[gd_scene load_steps=8 format=3 uid="uid://68vjwfxquvlf"]
 
 [ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/table_data_editor.gd" id="1_j3oce"]
 [ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/menu/menu_list.gd" id="2_jsb7y"]
 [ext_resource type="PackedScene" uid="uid://ctppgkl2dpksd" path="res://addons/table_data_editor/src/table_data_editor/table_edit/table_edit.tscn" id="3_87xax"]
 [ext_resource type="PackedScene" uid="uid://cqpmbxqgny2kq" path="res://addons/table_data_editor/src/table_data_editor/export_preview/export_preview_window.tscn" id="4_8p413"]
+
+[sub_resource type="Animation" id="Animation_lfmqt"]
+resource_name = "flicker"
+length = 8.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate:a")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 5, 8),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 0.55, 1.0, 0.55, 1.0, 0.55, 1.0, 0.55, 1.0, 1.0, 0.0]
+}
+
+[sub_resource type="Animation" id="Animation_jmtv6"]
+length = 0.001
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_xid6c"]
+_data = {
+"RESET": SubResource("Animation_jmtv6"),
+"flicker": SubResource("Animation_lfmqt")
+}
 
 [node name="table_data_editor" type="MarginContainer"]
 clip_contents = true
@@ -83,6 +108,18 @@ layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 1
 
+[node name="prompt_message" type="Label" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/Control"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+layout_mode = 2
+text = "(Prompt Message)"
+
+[node name="prompt_message_player" type="AnimationPlayer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/Control/prompt_message"]
+unique_name_in_owner = true
+libraries = {
+"": SubResource("AnimationLibrary_xid6c")
+}
+
 [node name="MarginContainer2" type="MarginContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 2
@@ -101,6 +138,7 @@ size_flags_horizontal = 3
 tooltip_text = "双击打开所在文件目录"
 focus_mode = 1
 mouse_filter = 0
+text = "res://addons/table_data_editor/column_width_test.gdata"
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2

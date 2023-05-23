@@ -11,11 +11,12 @@ class_name TableDataEditor
 extends MarginContainer
 
 
-## 修改时文件保存状态的颜色
+## 没有保存文件时的颜色
 const NOT_SAVED_COLOR = Color(1, 0.65, 0.275, 1)
+## 保存文件后的颜色
 const SAVED_COLOR = Color(1, 1, 1, 0.625)
-## 最近打开的文件显示最大数量
-const RECENTLY_SHOW_MAX_NUMBER = 10
+## 最大显示的最近打开的文件数量
+const RECENTLY_OPEND_MAX_COUNT = 10
 
 
 ## 文件弹窗文件过滤
@@ -49,6 +50,8 @@ const MENU_CHECKABLE : Array = [
 	"/Edit/Double click edit",
 ]
 
+
+## 创建新的文件
 signal created_file(path: String)
 
 
@@ -56,7 +59,7 @@ signal created_file(path: String)
 var _saved_path : String = "" :
 	set(v):
 		_saved_path = v
-		file_path_label.text = _saved_path
+		_file_path_label.text = _saved_path
 # 是否已保存
 var _saved: bool = true:
 	set(v):
@@ -88,15 +91,11 @@ var _is_reloaded := false :
 
 var __init_node = InjectUtil.auto_inject(self, "_")
 
-# 编辑表格节点
-var _table_edit : TableEdit
-# 菜单列表
-var _menu_list : MenuList
-# 滚动条位置输入框
-var _scroll_pos : LineEdit
-# 切换页面（暂未开始）
-var _pages : ItemList
 
+var _table_edit : TableEdit # 编辑表格节点
+var _menu_list : MenuList # 菜单列表
+var _scroll_pos : LineEdit # 滚动条位置输入框
+var _pages : ItemList # 切换页面（暂未开始实现功能）
 var _export_preview_window : ExportPreviewWindow
 var _confirm_dialog : ConfirmationDialog
 var _tooltip_dialog : AcceptDialog
@@ -105,7 +104,9 @@ var _open_file_dialog : FileDialog
 var _import_dialog : FileDialog
 
 var _saved_status_label : Label
-var file_path_label : Label
+var _file_path_label : Label
+var _prompt_message : Label
+var _prompt_message_player : AnimationPlayer
 
 
 var file_data := TableDataEditor_FileData.new({})
@@ -215,15 +216,25 @@ func _load_last_cache_data():
 	
 	# 添加打开过的路径
 	const RECENTLY_OPEND_MENU = "/File/Recently Opened"
-	var list = cache_data.get_recently_opend_paths()
+	var list : Array = cache_data.get_recently_opend_paths()
 	list.reverse()
-	for path in list:
-		_menu_list.add_menu(path, RECENTLY_OPEND_MENU)
+	for idx in range(min(list.size(), RECENTLY_OPEND_MAX_COUNT)):
+		var path = list[idx]
+		if FileAccess.file_exists(path):
+			_menu_list.add_menu(path, RECENTLY_OPEND_MENU)
 
 
 #============================================================
 #  自定义
 #============================================================
+## 显示提示信息
+func display_prompt_message(message: String, color: Color = Color.WHITE) -> void:
+	_prompt_message.text = message
+	_prompt_message.modulate = color
+	_prompt_message_player.stop()
+	_prompt_message_player.play("flicker")
+
+
 ##  加载路径的数据
 ##[br]
 ##[br][code]path[/code]  加载这个路径的数据
@@ -275,9 +286,11 @@ func save_data_to(path: String):
 		
 		self.created_file.emit(path)
 		
+		display_prompt_message("保存成功. %s" % [Time.get_datetime_string_from_system().replace("T", " ")])
 		print("[ TableDataEditor ] 保存成功 ", Time.get_datetime_string_from_system())
 		
 	else:
+		display_prompt_message("保存失败")
 		printerr("[ TableDataEditor ] 保存失败")
 
 
@@ -308,7 +321,12 @@ func show_save_dialog(default_file_name: String = ""):
 
 ## 导入文件
 func import_file(path: String):
-	assert(path.get_extension() in ["csv"], "错误的文件类型")
+	const FILE_TYPE = ["csv"]
+	if not path.get_extension() in FILE_TYPE:
+		display_prompt_message("错误的文件类型：%s。暂不支持 %s 以外的文件类型" % [ 
+			path.get_extension(), FILE_TYPE 
+		])
+		assert(false, "错误的文件类型")
 	
 	# 加载 csv数据 到 数据集 中
 	var data_set = TableDataEditor_TableDataSet.new()
@@ -416,10 +434,15 @@ func _on_menu_list_menu_pressed(idx, menu_path: StringName):
 			_tooltip_dialog.popup_centered()
 		
 		_:
+			# 最近打开的文件
 			if menu_path.contains("/File/Recently Opened"):
 				var file_path = menu_path.trim_prefix("/File/Recently Opened/")
 				if FileAccess.file_exists(file_path):
 					load_file_path(file_path)
+					
+				else:
+					printerr("文件不存在")
+					_menu_list.remove_menu(menu_path)
 
 
 func _on_save_as_dialog_file_selected(path):
@@ -430,6 +453,7 @@ func _on_save_as_dialog_file_selected(path):
 		"json":
 			save_as_json( _saved_path )
 		_:
+			display_prompt_message("错误的文件类型：%s" % [ _saved_path.get_extension() ])
 			printerr("[ TableDataEditor ] <Unknown Type> ", _saved_path.get_extension())
 
 
