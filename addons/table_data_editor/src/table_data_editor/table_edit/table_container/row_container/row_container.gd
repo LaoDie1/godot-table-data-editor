@@ -13,12 +13,10 @@ extends MarginContainer
 signal newly_added_line(line: ColumnContainer)
 
 
-@export
-var item : PackedScene
+@export var item : PackedScene
 
 
-@onready 
-var container = %container as VBoxContainer
+@onready var container = %container as VBoxContainer
 
 
 func get_columns_containers() -> Array:

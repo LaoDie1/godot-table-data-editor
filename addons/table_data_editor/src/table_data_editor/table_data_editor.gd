@@ -245,11 +245,8 @@ func load_file_data(file_data: TableDataEditor_FileData):
 	
 	# 加载到表格中
 	(func():
-		_table_edit.row_to_height_map = {}
-		_table_edit.column_to_width_map = {}
-		if not file_data.is_empty():
-			_table_edit.row_to_height_map = file_data.row_height
-			_table_edit.column_to_width_map = file_data.column_width
+		_table_edit.row_to_height_map = file_data.row_height
+		_table_edit.column_to_width_map = file_data.column_width
 		_table_edit.data_set = file_data.data_set
 		
 		_table_edit.get_edit_dialog().box_size = file_data.edit_dialog_size
