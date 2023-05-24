@@ -433,8 +433,9 @@ func _on_save_as_dialog_file_selected(path):
 			printerr("[ TableDataEditor ] <Unknown Type> ", _saved_path.get_extension())
 
 
-func _on_export_preview_window_exported(path, json):
+func _on_export_preview_window_exported(path, type, data):
 	_export_preview_window.visible = false
+	display_prompt_message("已导出 %s 资源" % [type])
 
 
 func _on_open_file_dialog_file_selected(path: String):

@@ -173,7 +173,7 @@ size_flags_horizontal = 3
 unique_name_in_owner = true
 size = Vector2i(375, 161)
 access = 2
-filters = PackedStringArray("*.json; JSON", "*.csv; CSV")
+filters = PackedStringArray("*.json; JSON", "*.csv; CSV", "*.tres; TRES", "*.res; RES", "*.gd; GDScript")
 
 [connection signal="value_changed" from="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/json/head_line_box" to="." method="_on_head_line_box_value_changed"]
 [connection signal="pressed" from="export_preview/MarginContainer/VBoxContainer/HBoxContainer/export" to="." method="_on_export_pressed"]

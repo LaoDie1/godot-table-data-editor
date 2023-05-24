@@ -11,25 +11,12 @@ class_name ExportPreviewWindow
 extends Window
 
 
-## 导出 json 数据
-signal exported(path: String, json: String)
-
-
-## 导出方式
-enum ExportMode {
-	# 正常导出
-	NORMAL,
-	
-	# 以头部作为 key
-	HEAD_AS_KEY,
-	
-	# 按一行一行导出 [ {}, {}, ... ]
-	BY_ROW,
-	
-}
-
 ## 最大示例数量
-const EXAMPLE_COUNT = 5
+const EXAMPLE_COUNT : int = 5
+
+
+## 导出 json 数据
+signal exported(path: String, type, data)
 
 
 @export var table_data_editor : TableDataEditor
@@ -43,12 +30,31 @@ var _save_dialog : FileDialog
 var _compact : CheckBox
 var _select_items : Control
 var _selected_item_param : Control
+var _resource_class_name : LineEdit
 
 
 ## 指定的 head 列数对应的值内容。_head_map[列数] = 值内容
 var _head_map : Dictionary = {}
+## 类型选项按钮组
+var _button_group : ButtonGroup 
 
-var button_group : ButtonGroup 
+
+#============================================================
+#  内置
+#============================================================
+func _ready() -> void:
+	_button_group = _select_items.get_child(0).button_group as ButtonGroup
+	_button_group.pressed.connect(func(button):
+		for child in _selected_item_param.get_children():
+			if child is Control:
+				child.visible = false
+		
+		var item_node : Control = _selected_item_param.get_node_or_null(str(button.name))
+		if item_node:
+			item_node.visible = true
+		
+		update_text_box_content()
+	)
 
 
 #============================================================
@@ -69,13 +75,14 @@ func get_data_by_head_row() -> Array:
 	var data_set = table_data_editor.get_table_edit().get_data_set()
 	var head_row_data : Dictionary = data_set.grid_data.get(head_row_number, {})
 	head_row_number += 1
-	for row in range(head_row_number, data_set.grid_data.size()):
+	for row in range(head_row_number, data_set.grid_data.size() + 1):
 		var data = {}
 		var row_data = data_set.grid_data[row]
 		for column in head_row_data:
 			data[head_row_data[column]] = row_data.get(column, "")
 		result.append(data)
 	return result
+
 
 ## 获取 CSV 格式数据
 func get_csv_data() -> Array[String]:
@@ -95,58 +102,89 @@ func get_csv_data() -> Array[String]:
 	
 	return csv_list
 
+
 ## 获取转为资源的数据
-func get_resource(path: String) -> Array[Resource]:
-	var list : Array[Resource] = []
+func get_resources_by_path(path: String) -> Array[Resource]:
 	var head_row_data : Dictionary = get_head_map()
+	var head_row_number : int = _head_line_box.value
+	var data_set = table_data_editor.get_table_edit().get_data_set()
+	var row_list = data_set.get_row_list()
+	for idx in row_list.size():
+		var row = row_list[idx]
+		if row > head_row_number:
+			row_list = row_list.slice(idx, row_list.size())
+			break
 	
+	# 类名
+	var r_class_name : String = _resource_class_name.text.strip_edges()
+	
+	# 属性列表
+	var propertys : Array = []
+	for column in head_row_data:
+		
+		# 寻找这个字段有数据的行，判断数据类型
+		var value = ""
+		for row in row_list:
+			value = data_set.grid_data[row].get(column)
+			if value != "":
+				break
+		
+		# 判断数据类型
+		var type = "String"
+		if value != "":
+			var json = JSON.parse_string(value)
+			match typeof(json):
+				TYPE_STRING, TYPE_NIL: type = "String"
+				TYPE_INT: type = "int"
+				TYPE_FLOAT: type = "float"
+				TYPE_BOOL: type = "bool"
+				TYPE_ARRAY: type = "Array"
+				TYPE_DICTIONARY: type = "Dictionary"
+				TYPE_COLOR: type = "Color"
+				TYPE_VECTOR2: type = "Vector2"
+				TYPE_VECTOR2I: type = "Vector2i"
+				TYPE_VECTOR3: type = "Vector3"
+				TYPE_VECTOR3I: type = "Vector3i"
+				TYPE_VECTOR4: type = "Vector4"
+				TYPE_VECTOR4I: type = "Vector4i"
+				_: "String"
+		
+		# 生成 @export s属性
+		var property = head_row_data[column]
+		printt(column, property, value)
+		propertys.append("@export var %s : %s " % [property, type])
+	
+	# 生成脚本
 	var script = GDScript.new()
-	var r_class_name : String = %resource_class_name.text
-	if not r_class_name.strip_edges().is_empty():
-		r_class_name = "class_name " + r_class_name.strip_edges() + "\n"
-	script.source_code = """#{ScriptName}
-{ClassName} extends Resource
+	script.source_code = """# {ScriptName}
+{ClassName}extends Resource
 
 {Propertys}
 """.format({
-		"ScriptName": path.get_basename(),
-		"ClassName": r_class_name,
-		"ExtendsClass": path.get_basename(),
-		"Propertys": "\n".join(head_row_data.values().map(func(item): "@export var %s : String " % item )),
+		"ScriptName": path.get_file(),
+		"ClassName": ("class_name %s\n" % [r_class_name]) if r_class_name else "",
+		"Propertys": "\n".join(propertys),
 	})
-	script.reload()
 	ResourceSaver.save(script, path)
 	
-	var head_row_number : int = _head_line_box.value
-	var data_set = table_data_editor.get_table_edit().get_data_set()
-	for row in range(head_row_number, data_set.grid_data.size()):
+	# 生成资源
+	var resources : Array[Resource] = []
+	var new_script = load(path) # 避免 reload() 之后 new 时跟已有的类冲突造成的报错
+	for row in row_list:
+		# 生成数据
 		var data = {}
 		var row_data = data_set.grid_data[row]
 		for column in head_row_data:
 			data[head_row_data[column]] = row_data.get(column, "")
-			
 		
+		# 生成资源
+		var resource = new_script.new()
+		for property in data:
+			resource[property] = data[property]
+		resources.append(resource)
 	
-	return list
+	return resources
 
-
-
-#============================================================
-#  内置
-#============================================================
-func _ready() -> void:
-	button_group = _select_items.get_child(0).button_group as ButtonGroup
-	button_group.pressed.connect(func(button):
-		for child in _selected_item_param.get_children():
-			if child is Control:
-				child.visible = false
-		
-		var item_node : Control = _selected_item_param.get_node_or_null(str(button.name))
-		if item_node:
-			item_node.visible = true
-		
-		update_text_box_content()
-	)
 
 
 #============================================================
@@ -175,7 +213,7 @@ func _update_by_csv():
 # 更新文本框的内容
 func update_text_box_content():
 	_text_box.text = ""
-	match button_group.get_pressed_button().name:
+	match _button_group.get_pressed_button().name:
 		"json", "resource":
 			_update_by_head_row()
 		"csv":
@@ -191,13 +229,24 @@ func _on_head_line_box_value_changed(value: float) -> void:
 
 
 func _on_export_pressed() -> void:
-	_save_dialog.current_file = "new_file." + str(button_group.get_pressed_button().name)
+	var extension = str(_button_group.get_pressed_button().name)
+	if extension == "resource":
+		var r_class_name = _resource_class_name.text.strip_edges()
+		if r_class_name == "":
+			r_class_name = "res_0"
+		_save_dialog.current_file = r_class_name.to_snake_case() + ".gd"
+		
+	else:
+		_save_dialog.current_file = "new_file." + extension
+	
 	_save_dialog.popup_centered_ratio(0.5)
 
 
 func _on_save_dialog_file_selected(path: String) -> void:
+	print(path)
 	var data
-	match button_group.get_pressed_button().name:
+	var type = str(_button_group.get_pressed_button().name)
+	match type:
 		"csv":
 			data = "\n".join(get_csv_data())
 			TableDataUtil.Files.save_as_string( path, data )
@@ -209,12 +258,26 @@ func _on_save_dialog_file_selected(path: String) -> void:
 		"json":
 			data = get_data_by_head_row()
 			TableDataUtil.Files.save_as_string( path, _data_format(data) )
+		
+		"resource":
+			data = get_resources_by_path(path)
+			var idx : int = 0
+			var dir = path.get_base_dir()
+			var filename = path.get_file().get_basename()
+			for resource in data:
+				var file_path = dir.path_join("%s_%002d.tres" % [filename, idx])
+				while FileAccess.file_exists(file_path):
+					idx += 1
+					file_path = dir.path_join("%s_%002d.tres" % [filename, idx])
+				var err = ResourceSaver.save(resource, file_path)
+				print(err)
+				idx += 1
 	
 	_save_dialog.current_path = path
 	
 	self.hide()
 	print("[ ExportPreview ] 保存数据：", path)
-	self.exported.emit(path, data)
+	self.exported.emit(path, type, data )
 
 
 func _on_cancel_pressed():
