@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://dur7a01yq0v4h"]
+[gd_scene load_steps=8 format=3 uid="uid://68vjwfxquvlf"]
 
 [ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/table_data_editor.gd" id="1_j3oce"]
 [ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/menu_list.gd" id="2_o7gjv"]
