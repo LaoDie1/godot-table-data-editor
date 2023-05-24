@@ -19,8 +19,8 @@ const EXAMPLE_COUNT : int = 5
 signal exported(path: String, type, data)
 
 
-@export var table_data_editor : TableDataEditor
-
+@export_node_path("TableDataEditor") var _table_data_editor : NodePath
+@onready var table_data_editor : TableDataEditor = get_node(_table_data_editor)
 
 var __init_node = InjectUtil.auto_inject(self, "_")
 var _text_box : TextEdit

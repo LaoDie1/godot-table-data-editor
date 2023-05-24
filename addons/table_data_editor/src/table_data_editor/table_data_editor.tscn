@@ -138,6 +138,7 @@ size_flags_horizontal = 3
 tooltip_text = "双击打开所在文件目录"
 focus_mode = 1
 mouse_filter = 0
+text = "res://addons/table_data_editor/column_width_test.gdata"
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
@@ -158,11 +159,11 @@ size_flags_horizontal = 8
 focus_mode = 1
 text = "(saved)"
 
-[node name="export_preview_window" parent="." node_paths=PackedStringArray("table_data_editor") instance=ExtResource("4_8p413")]
+[node name="export_preview_window" parent="." instance=ExtResource("4_8p413")]
 unique_name_in_owner = true
 position = Vector2i(0, -500)
 visible = false
-table_data_editor = NodePath("..")
+_table_data_editor = NodePath("..")
 
 [node name="confirm_dialog" type="ConfirmationDialog" parent="."]
 unique_name_in_owner = true

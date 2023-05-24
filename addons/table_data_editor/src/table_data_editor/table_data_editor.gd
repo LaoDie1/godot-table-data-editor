@@ -436,6 +436,7 @@ func _on_save_as_dialog_file_selected(path):
 func _on_export_preview_window_exported(path, type, data):
 	_export_preview_window.visible = false
 	display_prompt_message("已导出 %s 资源" % [type])
+	self.created_file.emit(path)
 
 
 func _on_open_file_dialog_file_selected(path: String):
