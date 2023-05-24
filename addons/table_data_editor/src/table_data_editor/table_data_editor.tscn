@@ -5,6 +5,9 @@
 [ext_resource type="PackedScene" uid="uid://ctppgkl2dpksd" path="res://addons/table_data_editor/src/table_data_editor/table_edit/table_edit.tscn" id="3_87xax"]
 [ext_resource type="PackedScene" uid="uid://cqpmbxqgny2kq" path="res://addons/table_data_editor/src/table_data_editor/export_preview/export_preview_window.tscn" id="4_8p413"]
 
+[sub_resource type="Animation" id="Animation_jmtv6"]
+length = 0.001
+
 [sub_resource type="Animation" id="Animation_lfmqt"]
 resource_name = "flicker"
 length = 8.0
@@ -20,9 +23,6 @@ tracks/0/keys = {
 "update": 0,
 "values": [0.0, 0.55, 1.0, 0.55, 1.0, 0.55, 1.0, 0.55, 1.0, 1.0, 0.0]
 }
-
-[sub_resource type="Animation" id="Animation_jmtv6"]
-length = 0.001
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_xid6c"]
 _data = {

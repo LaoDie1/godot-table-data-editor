@@ -138,11 +138,15 @@ func get_cell_node(coords: Vector2i) -> InputCell:
 	return _origin_coords_to_cell_map.get(origin_coords) as InputCell
 
 ## 获取列宽
-func get_column_width(column: int, default_width: int = 0):
+func get_column_width(column: int, default_width: int = 0) -> int:
+	if default_width <= 0:
+		default_width = _table_container.get_tile_size().x
 	return column_to_width_map.get(column, default_width)
 
 ## 获取行高
 func get_row_height(row: int, default_heigt : int = 0):
+	if default_heigt <= 0:
+		default_heigt = _table_container.get_tile_size().y
 	return row_to_height_map.get(row, default_heigt)
 
 ## 获取列宽数据，数据中的 key 为列值，对应列宽
@@ -355,11 +359,34 @@ func edit_to_next_cell(coords: Vector2i, direction : Vector2i):
 		_popup_edit_box.showed = true
 		
 		# 如果所在的单元格超出当前视图内的单元格，则进行滚动
-		var rect = get_current_rect()
-		rect.size -= Vector2i.ONE
-		if not rect.has_point(next_coords):
+		if direction.x > 0 or direction.y > 0:
+			var get_width_height_callback : Callable = self.get_column_width \
+				if direction.x != 0 \
+				else self.get_row_height
+			var dir_idx = 0 \
+				if direction.x != 0 \
+				else 1
+			var total = 0
 			var top_left = get_scroll_top_left()
-			scroll_to(top_left + direction)
+			for i in range(next_coords[dir_idx] - 1, top_left[dir_idx] - 1, -1):
+				total += abs(get_width_height_callback.call(i)) + 8
+				if total > self.size[dir_idx]:
+					# 超出屏幕则换行
+					scroll_to(top_left + direction * (i - top_left[dir_idx] + 1))
+					break
+			
+			print("------------")
+			printt(top_left[dir_idx] - dir_idx, next_coords[dir_idx] - dir_idx + 1)
+			print("total: ", total)
+			print("size: ", self.size[dir_idx])
+			
+		
+		else:
+			var rect = get_current_rect()
+			rect.size -= Vector2i.ONE
+			if not rect.has_point(next_coords):
+				var top_left = get_scroll_top_left()
+				scroll_to(top_left + direction)
 		
 		# 切换到下一个网格的位置编辑网格
 		await Engine.get_main_loop().create_timer(0.1).timeout

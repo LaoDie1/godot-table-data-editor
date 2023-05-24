@@ -119,7 +119,8 @@ func _on_edit_box_resized():
 func _on_edit_box_gui_input(event):
 	if event is InputEventKey:
 		if event.pressed:
-			if not Input.is_key_pressed(KEY_CTRL):
+			if not event.alt_pressed:
+				# Enter/Tab 切换单元格
 				if event.keycode in [KEY_ENTER, KEY_KP_ENTER]:
 					self.input_switch_char.emit(KEY_ENTER)
 					get_tree().root.set_input_as_handled()
@@ -127,4 +128,9 @@ func _on_edit_box_gui_input(event):
 				elif event.keycode in [KEY_TAB]:
 					self.input_switch_char.emit(KEY_TAB)
 					get_tree().root.set_input_as_handled()
+			
+			else:
+				# Alt+Enter换行
+				if event.keycode in [KEY_ENTER, KEY_KP_ENTER]:
+					_edit_box.insert_text_at_caret("\n")
 
