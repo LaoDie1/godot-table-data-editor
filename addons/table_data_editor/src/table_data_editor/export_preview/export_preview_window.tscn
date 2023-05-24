@@ -67,6 +67,11 @@ layout_mode = 2
 button_group = SubResource("ButtonGroup_pxfjs")
 text = "JSON"
 
+[node name="resource" type="CheckBox" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/select_items"]
+layout_mode = 2
+button_group = SubResource("ButtonGroup_pxfjs")
+text = "Resource"
+
 [node name="VSeparator" type="VSeparator" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 16
@@ -88,17 +93,16 @@ layout_mode = 2
 text = ","
 placeholder_text = "表格间的分隔符，默认为 ,"
 
-[node name="head_as_key_panel" type="HBoxContainer" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param"]
-unique_name_in_owner = true
+[node name="json" type="HBoxContainer" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param"]
 visible = false
 layout_mode = 2
 
-[node name="Label" type="Label" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/head_as_key_panel"]
+[node name="Label" type="Label" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/json"]
 layout_mode = 2
 tooltip_text = "作为 key 的行"
 text = "Key Row: "
 
-[node name="head_line_box" type="SpinBox" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/head_as_key_panel"]
+[node name="head_line_box" type="SpinBox" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/json"]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "作为 key 的行"
@@ -106,12 +110,26 @@ min_value = 1.0
 max_value = 10000.0
 value = 1.0
 
-[node name="compact" type="CheckBox" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/head_as_key_panel"]
+[node name="compact" type="CheckBox" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/json"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 tooltip_text = "紧凑的格式导出，这样JSON会占用空间会最小。数据量不是非常大可以不用勾选"
 text = "compact"
+
+[node name="resource" type="HBoxContainer" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param"]
+visible = false
+layout_mode = 2
+
+[node name="Label" type="Label" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/resource"]
+layout_mode = 2
+text = "ClassName"
+
+[node name="resource_class_name" type="LineEdit" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/resource"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+placeholder_text = "Class Name"
 
 [node name="Label" type="Label" parent="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer"]
 modulate = Color(1, 1, 1, 0.462745)
@@ -157,7 +175,7 @@ size = Vector2i(375, 161)
 access = 2
 filters = PackedStringArray("*.json; JSON", "*.csv; CSV")
 
-[connection signal="value_changed" from="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/head_as_key_panel/head_line_box" to="export_preview" method="_on_head_line_box_value_changed" flags=18]
+[connection signal="value_changed" from="export_preview/MarginContainer/VBoxContainer/HSplitContainer/VBoxContainer/HBoxContainer/selected_item_param/json/head_line_box" to="." method="_on_head_line_box_value_changed"]
 [connection signal="pressed" from="export_preview/MarginContainer/VBoxContainer/HBoxContainer/export" to="." method="_on_export_pressed"]
 [connection signal="pressed" from="export_preview/MarginContainer/VBoxContainer/HBoxContainer/cancel" to="." method="_on_cancel_pressed"]
 [connection signal="file_selected" from="save_dialog" to="." method="_on_save_dialog_file_selected"]

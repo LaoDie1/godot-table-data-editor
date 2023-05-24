@@ -13,8 +13,9 @@ config_version=5
 config/name="table-data-editor"
 run/main_scene="res://addons/table_data_editor/src/table_data_editor/table_data_editor.tscn"
 config/features=PackedStringArray("4.0", "Forward Plus")
+run/low_processor_mode=true
 config/icon="res://icon.svg"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/script_comment_menu/plugin.cfg", "res://addons/table_data_editor/plugin.cfg")
+enabled=PackedStringArray("res://addons/script_comment_menu/plugin.cfg")

@@ -24,9 +24,9 @@ var data_set = TableDataEditor_TableDataSet.new():
 			if v is Dictionary \
 			else v
 ## 列宽数据
-var column_width = {}
+var column_width : Dictionary = {}
 ## 行高数据
-var row_height = {}
+var row_height : Dictionary = {}
 ## 编辑框大小
 var edit_dialog_size : Vector2 = Vector2(100, 50)
 ## 文件路径

@@ -28,6 +28,7 @@ enum ExportMode {
 	
 }
 
+## 最大示例数量
 const EXAMPLE_COUNT = 5
 
 
@@ -53,6 +54,14 @@ var button_group : ButtonGroup
 #============================================================
 #  SetGet
 #============================================================
+## 获取头部字段行。列值对应字段值
+func get_head_map() -> Dictionary:
+	var head_row_number : int = _head_line_box.value
+	var data_set = table_data_editor.get_table_edit().get_data_set()
+	var head_row_data : Dictionary = data_set.grid_data.get(head_row_number, {})
+	return head_row_data
+
+
 ## 将有值的行的数据进行保存
 func get_data_by_head_row() -> Array:
 	var result : Array = []
@@ -60,7 +69,7 @@ func get_data_by_head_row() -> Array:
 	var data_set = table_data_editor.get_table_edit().get_data_set()
 	var head_row_data : Dictionary = data_set.grid_data.get(head_row_number, {})
 	head_row_number += 1
-	for row in range(head_row_number, min(data_set.grid_data.size(), head_row_number + EXAMPLE_COUNT)):
+	for row in range(head_row_number, data_set.grid_data.size()):
 		var data = {}
 		var row_data = data_set.grid_data[row]
 		for column in head_row_data:
@@ -68,7 +77,7 @@ func get_data_by_head_row() -> Array:
 		result.append(data)
 	return result
 
-
+## 获取 CSV 格式数据
 func get_csv_data() -> Array[String]:
 	var data_set = table_data_editor.get_table_edit().data_set as TableDataEditor_TableDataSet
 	var max_column : int = data_set.get_max_column()
@@ -86,6 +95,40 @@ func get_csv_data() -> Array[String]:
 	
 	return csv_list
 
+## 获取转为资源的数据
+func get_resource(path: String) -> Array[Resource]:
+	var list : Array[Resource] = []
+	var head_row_data : Dictionary = get_head_map()
+	
+	var script = GDScript.new()
+	var r_class_name : String = %resource_class_name.text
+	if not r_class_name.strip_edges().is_empty():
+		r_class_name = "class_name " + r_class_name.strip_edges() + "\n"
+	script.source_code = """#{ScriptName}
+{ClassName} extends Resource
+
+{Propertys}
+""".format({
+		"ScriptName": path.get_basename(),
+		"ClassName": r_class_name,
+		"ExtendsClass": path.get_basename(),
+		"Propertys": "\n".join(head_row_data.values().map(func(item): "@export var %s : String " % item )),
+	})
+	script.reload()
+	ResourceSaver.save(script, path)
+	
+	var head_row_number : int = _head_line_box.value
+	var data_set = table_data_editor.get_table_edit().get_data_set()
+	for row in range(head_row_number, data_set.grid_data.size()):
+		var data = {}
+		var row_data = data_set.grid_data[row]
+		for column in head_row_data:
+			data[head_row_data[column]] = row_data.get(column, "")
+			
+		
+	
+	return list
+
 
 
 #============================================================
@@ -95,10 +138,12 @@ func _ready() -> void:
 	button_group = _select_items.get_child(0).button_group as ButtonGroup
 	button_group.pressed.connect(func(button):
 		for child in _selected_item_param.get_children():
-			child.visible = false
-		match button.name:
-			"json": 
-				_head_as_key_panel.visible = true
+			if child is Control:
+				child.visible = false
+		
+		var item_node : Control = _selected_item_param.get_node_or_null(str(button.name))
+		if item_node:
+			item_node.visible = true
 		
 		update_text_box_content()
 	)
@@ -131,10 +176,11 @@ func _update_by_csv():
 func update_text_box_content():
 	_text_box.text = ""
 	match button_group.get_pressed_button().name:
-		"json":
+		"json", "resource":
 			_update_by_head_row()
 		"csv":
 			_update_by_csv()
+			
 
 
 #============================================================
@@ -159,7 +205,6 @@ func _on_save_dialog_file_selected(path: String) -> void:
 			# 导出的文件保持默认文件，不作为翻译文件
 			var keep_import_path = path + ".import"
 			TableDataUtil.Files.save_as_string(keep_import_path, '[remap]\n\nimporter="keep"\n\n')
-			
 			
 		"json":
 			data = get_data_by_head_row()

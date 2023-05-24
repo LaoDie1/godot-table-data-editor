@@ -1,9 +1,34 @@
-[gd_scene load_steps=5 format=3 uid="uid://68vjwfxquvlf"]
+[gd_scene load_steps=8 format=3 uid="uid://dur7a01yq0v4h"]
 
 [ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/table_data_editor.gd" id="1_j3oce"]
-[ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/menu/menu_list.gd" id="2_jsb7y"]
+[ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/menu_list.gd" id="2_o7gjv"]
 [ext_resource type="PackedScene" uid="uid://ctppgkl2dpksd" path="res://addons/table_data_editor/src/table_data_editor/table_edit/table_edit.tscn" id="3_87xax"]
 [ext_resource type="PackedScene" uid="uid://cqpmbxqgny2kq" path="res://addons/table_data_editor/src/table_data_editor/export_preview/export_preview_window.tscn" id="4_8p413"]
+
+[sub_resource type="Animation" id="Animation_jmtv6"]
+length = 0.001
+
+[sub_resource type="Animation" id="Animation_lfmqt"]
+resource_name = "flicker"
+length = 8.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate:a")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 5, 8),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 0.55, 1.0, 0.55, 1.0, 0.55, 1.0, 0.55, 1.0, 1.0, 0.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_xid6c"]
+_data = {
+"RESET": SubResource("Animation_jmtv6"),
+"flicker": SubResource("Animation_lfmqt")
+}
 
 [node name="table_data_editor" type="MarginContainer"]
 clip_contents = true
@@ -28,7 +53,7 @@ unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 1
 flat = true
-script = ExtResource("2_jsb7y")
+script = ExtResource("2_o7gjv")
 
 [node name="GridContainer" type="HSplitContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -82,6 +107,18 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 1
+
+[node name="prompt_message" type="Label" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/Control"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+layout_mode = 2
+text = "(Prompt Message)"
+
+[node name="prompt_message_player" type="AnimationPlayer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer/Control/prompt_message"]
+unique_name_in_owner = true
+libraries = {
+"": SubResource("AnimationLibrary_xid6c")
+}
 
 [node name="MarginContainer2" type="MarginContainer" parent="VBoxContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
@@ -154,7 +191,12 @@ layout_mode = 2
 size_flags_vertical = 0
 text = "双击单元格进行编辑
 
-按住 Alt 键进行左右滚动，松开即可上下滚动"
+按住 Alt 键进行左右滚动，松开即可上下滚动
+
+按住 Tab 键或 Enter 键进行切换到下一个编辑的单元格，如果同时按下 Shift 则是切换到上一个单元格
+
+
+"
 
 [node name="save_as_dialog" type="FileDialog" parent="."]
 unique_name_in_owner = true

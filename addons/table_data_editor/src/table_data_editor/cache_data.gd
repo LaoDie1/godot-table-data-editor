@@ -81,5 +81,6 @@ func update_last_operation_path(path: String):
 	if path != "":
 		if not recently_opend_paths is Dictionary:
 			recently_opend_paths = {}
-		recently_opend_paths[path] = null
+		if FileAccess.file_exists(path):
+			recently_opend_paths[path] = null
 

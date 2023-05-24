@@ -110,7 +110,6 @@ autostart = true
 
 [node name="popup_edit_box" parent="." instance=ExtResource("6_mt1mb")]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 
 [connection signal="grid_cell_size_changed" from="serial_number_container/Control3/grid_container/table_container" to="." method="_on_table_container_grid_cell_size_changed"]

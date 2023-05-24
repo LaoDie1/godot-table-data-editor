@@ -23,10 +23,13 @@ func _ready():
 	main.call_deferred("set_anchors_preset", Control.PRESET_FULL_RECT)
 	main.set_deferred("size", main.get_parent().size)
 	main.get_child(0).set_deferred("size", main.size)
+	
+	# 创建新文件时进行扫描
 	main.created_file.connect(func(path):
+		await Engine.get_main_loop().create_timer(0.1).timeout
 		get_editor_interface() \
 			.get_resource_filesystem() \
-			.call_deferred("scan")
+			.scan.call_deferred()
 	)
 
 

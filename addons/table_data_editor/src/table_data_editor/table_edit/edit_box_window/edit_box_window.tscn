@@ -3,13 +3,13 @@
 [ext_resource type="Script" path="res://addons/table_data_editor/src/table_data_editor/table_edit/edit_box_window/edit_box_window.gd" id="1_qj0ea"]
 
 [node name="popup_edit_box" type="Control"]
+visible = false
 layout_mode = 3
 anchors_preset = 0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 mouse_filter = 2
 script = ExtResource("1_qj0ea")
-showed = false
 box_size = Vector2(200, 120)
 
 [node name="edit_box" type="TextEdit" parent="."]
