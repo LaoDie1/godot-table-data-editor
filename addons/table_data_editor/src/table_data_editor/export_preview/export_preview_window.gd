@@ -169,7 +169,7 @@ func get_resources_by_path(path: String) -> Array[Resource]:
 	
 	# 生成资源
 	var resources : Array[Resource] = []
-	var new_script = load(path) # 避免 reload() 之后 new 时跟已有的类冲突造成的报错
+	var new_script = load(path) as GDScript 
 	for row in row_list:
 		# 生成数据
 		var data = {}
@@ -177,8 +177,9 @@ func get_resources_by_path(path: String) -> Array[Resource]:
 		for column in head_row_data:
 			data[head_row_data[column]] = row_data.get(column, "")
 		
-		# 生成资源
-		var resource = new_script.new()
+		# 生成资源。避免 new 时跟已有的类冲突造成的报错
+		var resource = Resource.new()
+		resource.set_script(new_script)
 		for property in data:
 			resource[property] = data[property]
 		resources.append(resource)
@@ -269,8 +270,7 @@ func _on_save_dialog_file_selected(path: String) -> void:
 				while FileAccess.file_exists(file_path):
 					idx += 1
 					file_path = dir.path_join("%s_%002d.tres" % [filename, idx])
-				var err = ResourceSaver.save(resource, file_path)
-				print(err)
+				ResourceSaver.save(resource, file_path)
 				idx += 1
 	
 	_save_dialog.current_path = path

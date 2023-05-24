@@ -374,12 +374,6 @@ func edit_to_next_cell(coords: Vector2i, direction : Vector2i):
 					# 超出屏幕则换行
 					scroll_to(top_left + direction * (i - top_left[dir_idx] + 1))
 					break
-			
-			print("------------")
-			printt(top_left[dir_idx] - dir_idx, next_coords[dir_idx] - dir_idx + 1)
-			print("total: ", total)
-			print("size: ", self.size[dir_idx])
-			
 		
 		else:
 			var rect = get_current_rect()

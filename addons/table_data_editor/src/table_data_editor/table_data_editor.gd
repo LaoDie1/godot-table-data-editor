@@ -128,7 +128,6 @@ func _ready() -> void:
 	file_data = TableDataEditor_FileData.new({})
 	cache_data = TableDataEditor_CacheData.instance()
 	
-	
 	(func():
 		_saved_path = ""
 		
